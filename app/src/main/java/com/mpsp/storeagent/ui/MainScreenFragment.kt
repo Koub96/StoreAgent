@@ -1,13 +1,11 @@
 package com.mpsp.storeagent.ui
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material.Button
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -17,10 +15,12 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.dialogflow.v2.*
 import com.mpsp.storeagent.R
+import com.mpsp.storeagent.sync.ParameterizationParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.*
 
 class MainScreenFragment : Fragment() {
@@ -54,11 +54,20 @@ class MainScreenFragment : Fragment() {
             OutlinedButton(
                 onClick = { communicateWithAgent(text) }
             ) {
-
+                Text("Ping Agent")
             }
-
             Text(text = text)
+
+            OutlinedButton(
+                onClick = { loadProductsJson() }
+            ) {
+                Text("Load Products Json")
+            }
         }
+    }
+
+    private fun loadProductsJson() {
+        //Fetch json from firebase
     }
 
     private fun communicateWithAgent(text: String) {
