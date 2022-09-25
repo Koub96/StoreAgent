@@ -3,12 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/mainScreenFragment">
-
+    app:startDestination="@id/syncFragment">
 
     <fragment
         android:id="@+id/mainScreenFragment"
         android:name="com.mpsp.storeagent.ui.MainScreenFragment"
         android:label="fragment_main_screen"
         tools:layout="@layout/fragment_main_screen" />
+    <fragment
+        android:id="@+id/syncFragment"
+        android:name="com.mpsp.storeagent.ui.sync.SyncFragment"
+        android:label="fragment_sync"
+        tools:layout="@layout/fragment_sync" />
 </navigation>
