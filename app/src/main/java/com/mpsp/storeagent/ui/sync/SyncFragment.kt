@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import com.airbnb.mvrx.compose.mavericksViewModel
 import com.mpsp.storeagent.R
 
 class SyncFragment : Fragment() {
@@ -47,6 +48,8 @@ class SyncFragment : Fragment() {
 
     @Composable
     private fun CreateSyncScreen() {
+        //val viewModel: SyncViewModel = mavericksViewModel()
+
         Column(modifier = Modifier.wrapContentSize(Alignment.Center)) {
             Row(modifier = Modifier.wrapContentSize()) {
                 Spacer(modifier = Modifier.width(4.dp))

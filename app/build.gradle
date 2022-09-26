@@ -98,4 +98,8 @@ dependencies {
     //dialogFlow
     implementation 'com.google.cloud:google-cloud-dialogflow:2.1.0'
     implementation 'io.grpc:grpc-okhttp:1.30.0'
+
+    //mavericks
+    implementation 'com.airbnb.android:mavericks:2.7.0'
+    implementation 'com.airbnb.android:mavericks-compose:2.7.0'
 }
