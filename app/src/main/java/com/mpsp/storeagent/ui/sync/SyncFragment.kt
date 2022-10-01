@@ -48,7 +48,7 @@ class SyncFragment : Fragment() {
 
     @Composable
     private fun CreateSyncScreen() {
-        //val viewModel: SyncViewModel = mavericksViewModel()
+        val viewModel: SyncViewModel = mavericksViewModel()
 
         Column(modifier = Modifier.wrapContentSize(Alignment.Center)) {
             Row(modifier = Modifier.wrapContentSize()) {
@@ -75,7 +75,7 @@ class SyncFragment : Fragment() {
                     pressedElevation = 8.dp,
                     disabledElevation = 0.dp
                 ),
-                onClick = {  },
+                onClick = { viewModel.initiateSyncProcess() },
                 shape = RoundedCornerShape(28.dp),
                 modifier = Modifier
                     .fillMaxWidth()
