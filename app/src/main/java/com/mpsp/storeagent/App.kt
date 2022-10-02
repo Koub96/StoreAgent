@@ -10,7 +10,7 @@ class App : Application() {
     @Volatile private var DatabaseInstance: AppDatabase? = null
 
     companion object {
-        var AppInstance: App? = null
+        private var AppInstance: App? = null
 
         fun getInstance(): App {
             return AppInstance!!
