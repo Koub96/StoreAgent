@@ -83,7 +83,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                             return@launch
 
                         //TODO First set the Entities to the Agent
-
+                        
                         val intentClientSettings: IntentsSettings = IntentsSettings.newBuilder()
                             .setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
                         val intentClient: IntentsClient = IntentsClient.create(intentClientSettings)
@@ -113,18 +113,46 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
                         val agentTrainingPhrasesProductWithQuantity = arrayListOf<Intent.TrainingPhrase>()
                         finalProductWithQuantityTrainingPhrases.forEach { phrase ->
-                            val startingPoint = phrase.indexOfFirst { it == '@' }
-                            val endingPoint = phrase.indexOfLast { it == '@' }
+                            val productStartingPoint = phrase.indexOfFirst { it == '@' }
+                            val productEndingPoint = phrase.indexOfLast { it == '@' }
 
                             val partBeforeProduct = phrase.substringBefore("@")
-                            val product = phrase.subSequence(startingPoint + 1, endingPoint).toString()
+                            val product = phrase.subSequence(productStartingPoint + 1, productEndingPoint).toString()
                             val partAfterProduct = phrase.substringAfterLast("@")
 
-                            val parts = arrayListOf(
-                                Intent.TrainingPhrase.Part.newBuilder().setText(partBeforeProduct).build(),
-                                Intent.TrainingPhrase.Part.newBuilder().setText(product).setEntityType("@product:product").build(),
-                                Intent.TrainingPhrase.Part.newBuilder().setText(partAfterProduct).build(),
-                            )
+                            var parts = arrayListOf<Intent.TrainingPhrase.Part>()
+
+                            if(partBeforeProduct.contains("#"))
+                            {
+                                val quantityStartingPoint = partBeforeProduct.indexOfFirst { it == '#' }
+                                val quantityEndingPoint = partBeforeProduct.indexOfLast { it == '#' }
+                                val phraseBeforeQuantity = partBeforeProduct.substringBefore("#")
+                                val quantity = partBeforeProduct.subSequence(quantityStartingPoint + 1, quantityEndingPoint).toString()
+                                val phraseAfterQuantity = partBeforeProduct.substringAfterLast("#")
+
+                                parts = arrayListOf(
+                                    Intent.TrainingPhrase.Part.newBuilder() .setText(phraseBeforeQuantity).build(),
+                                    Intent.TrainingPhrase.Part.newBuilder().setText(quantity).setEntityType("@sys.number").build(),
+                                    Intent.TrainingPhrase.Part.newBuilder().setText(phraseAfterQuantity).build(),
+                                    Intent.TrainingPhrase.Part.newBuilder().setText(product).setEntityType("@product:product").build(),
+                                    Intent.TrainingPhrase.Part.newBuilder().setText(partAfterProduct).build(),
+                                )
+
+                            } else if (partAfterProduct.contains("#")) {
+                                val quantityStartingPoint = partAfterProduct.indexOfFirst { it == '#' }
+                                val quantityEndingPoint = partAfterProduct.indexOfLast { it == '#' }
+                                val phraseBeforeQuantity = partAfterProduct.substringBefore("#")
+                                val quantity = partAfterProduct.subSequence(quantityStartingPoint + 1, quantityEndingPoint).toString()
+                                val phraseAfterQuantity = partAfterProduct.substringAfterLast("#")
+
+                                parts = arrayListOf(
+                                    Intent.TrainingPhrase.Part.newBuilder().setText(partBeforeProduct).build(),
+                                    Intent.TrainingPhrase.Part.newBuilder().setText(product).setEntityType("@product:product").build(),
+                                    Intent.TrainingPhrase.Part.newBuilder().setText(phraseBeforeQuantity).build(),
+                                    Intent.TrainingPhrase.Part.newBuilder().setText(quantity).setEntityType("@sys.number").build(),
+                                    Intent.TrainingPhrase.Part.newBuilder().setText(phraseAfterQuantity).build(),
+                                )
+                            }
 
                             agentTrainingPhrasesProductWithQuantity.add(
                                 Intent.TrainingPhrase.newBuilder().addAllParts(
