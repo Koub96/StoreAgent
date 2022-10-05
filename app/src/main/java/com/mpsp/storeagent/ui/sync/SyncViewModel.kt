@@ -12,6 +12,8 @@ import com.google.protobuf.FieldMask
 import com.mpsp.storeagent.App
 import com.mpsp.storeagent.AppConstants
 import com.mpsp.storeagent.database.AppDatabase
+import com.mpsp.storeagent.models.Product
+import com.mpsp.storeagent.models.ProductAlias
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -33,8 +35,17 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
         viewModelScope.launch(Dispatchers.IO) {
 //            App.getInstance().getDatabase().ProductDao().insertProducts(
 //                arrayListOf(
-//                    Product(1),
-//                    Product(2)
+//                    Product("1"),
+//                    Product("2")
+//                )
+//            )
+//
+//            App.getInstance().getDatabase().ProductAliasDao().insertProductAlias(
+//                arrayListOf(
+//                    ProductAlias("1", "1", "Alias 1"),
+//                    ProductAlias("2", "1", "Alias 2"),
+//                    ProductAlias("3", "2", "Alias 1"),
+//                    ProductAlias("4", "2", "Alias 2")
 //                )
 //            )
 
@@ -54,6 +65,40 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                         val finalProductWithQuantityTrainingPhrases = arrayListOf<String>()
 
                         val products = localDatabase.ProductDao().getProducts()
+                        //Entities and synonyms
+                        products.forEach { product ->
+                            val productAlias = App.getInstance().getDatabase().ProductAliasDao().getProductAlias(product.id)
+                            val aliases = productAlias.map { productAlias ->
+                                productAlias.alias
+                            }
+
+                            try {
+                                val entityClient = EntityTypesClient.create(
+                                    EntityTypesSettings.newBuilder().setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
+                                )
+                                val entityRequest = ListEntityTypesRequest.newBuilder().setParent(AgentName.of(AppConstants.projectId).toString()).build()
+                                entityClient.listEntityTypesCallable().call(entityRequest).entityTypesList.forEach { entityType ->
+                                    if(entityType.displayName.equals("product")) {
+                                        val entityTypeBuilder = entityClient.getEntityType(entityType.name).toBuilder()
+                                        val updatedEntityType = entityTypeBuilder.addAllEntities(
+                                            listOf<EntityType.Entity>(
+                                                EntityType.Entity.newBuilder().setValue(product.name)
+                                                    .addAllSynonyms(aliases).build()
+                                            )
+                                        ).build()
+
+                                        val fieldMask = FieldMask.newBuilder().addPaths("entities").build()
+                                        val request = UpdateEntityTypeRequest.newBuilder().setEntityType(updatedEntityType).setUpdateMask(fieldMask).build()
+                                        val response = entityClient.updateEntityType(request)
+                                        response.toString()
+                                    }
+                                }
+                            } catch (ex: Exception) {
+                                //TODO Inform the UI
+                            }
+                        }
+
+                        //Training Phrases Process
                         products.forEach { product ->
                             productTrainingPhrases.forEach { productTrainingPhrase ->
                                 val startingPoint = productTrainingPhrase.indexOfFirst { it == '@' }
@@ -82,8 +127,6 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                             //TODO Inform the UI
                             return@launch
 
-                        //TODO First set the Entities to the Agent
-                        
                         val intentClientSettings: IntentsSettings = IntentsSettings.newBuilder()
                             .setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
                         val intentClient: IntentsClient = IntentsClient.create(intentClientSettings)

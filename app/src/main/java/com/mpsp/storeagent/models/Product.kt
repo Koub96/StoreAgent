@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class Product(
-    @PrimaryKey val id: Int,
+    @PrimaryKey val id: String,
     val name: String = "",
     val price: Float = 1.0f,
     val discount: Float = 0.45f,
