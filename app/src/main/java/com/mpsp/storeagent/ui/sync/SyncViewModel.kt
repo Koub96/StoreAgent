@@ -12,8 +12,7 @@ import com.google.protobuf.FieldMask
 import com.mpsp.storeagent.App
 import com.mpsp.storeagent.AppConstants
 import com.mpsp.storeagent.database.AppDatabase
-import com.mpsp.storeagent.models.Product
-import com.mpsp.storeagent.models.ProductAlias
+import com.mpsp.storeagent.models.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -48,6 +47,38 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 //                    ProductAlias("4", "2", "Alias 2")
 //                )
 //            )
+            App.getInstance().getDatabase().SubcategoryDao().insertSubcategory(
+                arrayListOf(
+                    Subcategory("1", "Field1", "Numeric1"),
+                    Subcategory("2", "Field1", "Numeric1"),
+                    Subcategory("3", "Field1", "Numeric1"),
+                    Subcategory("4", "Field1", "Numeric1"),
+                )
+            )
+            App.getInstance().getDatabase().MasterCategoryDao().insertMasterCategory(
+                arrayListOf(
+                    MasterCategory("1", "Master Category Title"),
+                    MasterCategory("2", "Master Category Title"),
+                    MasterCategory("3", "Master Category Title"),
+                    MasterCategory("4", "Master Category Title")
+                )
+            )
+            App.getInstance().getDatabase().SubcategoryAliasDao().insertSubcategoryAlias(
+                arrayListOf(
+                    SubcategoryAlias("1", "1", "Alias subcategory 1"),
+                    SubcategoryAlias("2", "2", "Alias subcategory 2"),
+                    SubcategoryAlias("3", "3", "Alias subcategory 3"),
+                    SubcategoryAlias("4", "4", "Alias subcategory 4"),
+                )
+            )
+            App.getInstance().getDatabase().MasterCategoryAliasDao().insertMasterAlias(
+                arrayListOf(
+                    MasterCategoryAlias("1", "1", "Alias Master Category 1"),
+                    MasterCategoryAlias("2", "2", "Alias Master Category 2"),
+                    MasterCategoryAlias("3", "3", "Alias Master Category 3"),
+                    MasterCategoryAlias("4", "4", "Alias Master Category 4"),
+                )
+            )
 
             val valueListener = object: ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
