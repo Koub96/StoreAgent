@@ -9,7 +9,7 @@ import com.mpsp.storeagent.models.ProductAlias
 @Dao
 interface ProductAliasDao {
     @Query("SELECT * FROM ProductAlias WHERE ProductAlias.productID = :productID")
-    suspend fun getProductAlias(productID: String): List<ProductAlias>
+    fun getProductAlias(productID: String): List<ProductAlias>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProductAlias(productAlias: List<ProductAlias>)

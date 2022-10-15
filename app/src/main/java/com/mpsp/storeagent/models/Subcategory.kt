@@ -6,6 +6,7 @@ import androidx.room.PrimaryKey
 @Entity
 data class Subcategory (
     @PrimaryKey val id: String,
+    val title: String = "",
     val stringField1Title: String = "",
     val numericField1Title: String = ""
 )
