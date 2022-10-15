@@ -15,6 +15,7 @@ import com.mpsp.storeagent.database.AppDatabase
 import com.mpsp.storeagent.models.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 data class SyncState(val title: String = "") : MavericksState
 
@@ -32,53 +33,53 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
     fun initiateSyncProcess() {
         viewModelScope.launch(Dispatchers.IO) {
-            App.getInstance().getDatabase().ProductDao().insertProducts(
-                arrayListOf(
-                    Product("1", "Playstation 2"),
-                    Product("2", "Gameboy SP")
-                )
-            )
-
-            App.getInstance().getDatabase().ProductAliasDao().insertProductAlias(
-                arrayListOf(
-                    ProductAlias("1", "1", "Alias 1"),
-                    ProductAlias("2", "1", "Alias 2"),
-                    ProductAlias("3", "2", "Alias 1"),
-                    ProductAlias("4", "2", "Alias 2")
-                )
-            )
-            App.getInstance().getDatabase().SubcategoryDao().insertSubcategory(
-                arrayListOf(
-                    Subcategory("1", "Subcategory 1", "Field1", "Numeric1"),
-                    Subcategory("2", "Subcategory 2","Field1", "Numeric1"),
-                    Subcategory("3", "Subcategory 3","Field1", "Numeric1"),
-                    Subcategory("4", "Subcategory 4","Field1", "Numeric1"),
-                )
-            )
-            App.getInstance().getDatabase().MasterCategoryDao().insertMasterCategory(
-                arrayListOf(
-                    MasterCategory("1", "Master Category 1"),
-                    MasterCategory("2", "Master Category 2"),
-                    MasterCategory("3", "Master Category 3"),
-                    MasterCategory("4", "Master Category 4")
-                )
-            )
-            App.getInstance().getDatabase().SubcategoryAliasDao().insertSubcategoryAlias(
-                arrayListOf(
-                    SubcategoryAlias("1", "1", "Alias subcategory 1"),
-                    SubcategoryAlias("2", "2", "Alias subcategory 2"),
-                    SubcategoryAlias("3", "3", "Alias subcategory 3"),
-                    SubcategoryAlias("4", "4", "Alias subcategory 4"),
-                )
-            )
-            App.getInstance().getDatabase().MasterCategoryAliasDao().insertMasterAlias(
-                arrayListOf(
-                    MasterCategoryAlias("1", "1", "Alias Master Category 1"),
-                    MasterCategoryAlias("2", "2", "Alias Master Category 2"),
-                    MasterCategoryAlias("3", "3", "Alias Master Category 3"),
-                    MasterCategoryAlias("4", "4", "Alias Master Category 4"),
-                )
-            )
+//            App.getInstance().getDatabase().ProductDao().insertProducts(
+//                arrayListOf(
+//                    Product("1", "Playstation 2"),
+//                    Product("2", "Gameboy SP")
+//                )
+//            )
+//
+//            App.getInstance().getDatabase().ProductAliasDao().insertProductAlias(
+//                arrayListOf(
+//                    ProductAlias("1", "1", "Alias 1"),
+//                    ProductAlias("2", "1", "Alias 2"),
+//                    ProductAlias("3", "2", "Alias 1"),
+//                    ProductAlias("4", "2", "Alias 2")
+//                )
+//            )
+//            App.getInstance().getDatabase().SubcategoryDao().insertSubcategory(
+//                arrayListOf(
+//                    Subcategory("1", "Subcategory 1", "Field1", "Numeric1"),
+//                    Subcategory("2", "Subcategory 2","Field1", "Numeric1"),
+//                    Subcategory("3", "Subcategory 3","Field1", "Numeric1"),
+//                    Subcategory("4", "Subcategory 4","Field1", "Numeric1"),
+//                )
+//            )
+//            App.getInstance().getDatabase().MasterCategoryDao().insertMasterCategory(
+//                arrayListOf(
+//                    MasterCategory("1", "Master Category 1"),
+//                    MasterCategory("2", "Master Category 2"),
+//                    MasterCategory("3", "Master Category 3"),
+//                    MasterCategory("4", "Master Category 4")
+//                )
+//            )
+//            App.getInstance().getDatabase().SubcategoryAliasDao().insertSubcategoryAlias(
+//                arrayListOf(
+//                    SubcategoryAlias("1", "1", "Alias subcategory 1"),
+//                    SubcategoryAlias("2", "2", "Alias subcategory 2"),
+//                    SubcategoryAlias("3", "3", "Alias subcategory 3"),
+//                    SubcategoryAlias("4", "4", "Alias subcategory 4"),
+//                )
+//            )
+//            App.getInstance().getDatabase().MasterCategoryAliasDao().insertMasterAlias(
+//                arrayListOf(
+//                    MasterCategoryAlias("1", "1", "Alias Master Category 1"),
+//                    MasterCategoryAlias("2", "2", "Alias Master Category 2"),
+//                    MasterCategoryAlias("3", "3", "Alias Master Category 3"),
+//                    MasterCategoryAlias("4", "4", "Alias Master Category 4"),
+//                )
+//            )
 
             val valueListener = object: ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -229,6 +230,8 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                         response.toString()
                     }
                 }
+
+                entityClient.shutdownNow()
             } catch (ex: Exception) {
                 //TODO Inform the UI
             }
@@ -323,13 +326,17 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
             val entityRequest = ListEntityTypesRequest.newBuilder().setParent(AgentName.of(AppConstants.projectId).toString()).build()
 
             masterCategories.forEach { masterCategory ->
+                val aliases = localDatabase.MasterCategoryAliasDao().getMasterCategoryAlias(masterCategory.id).map {
+                    it.alias
+                }
+
                 entityClient.listEntityTypesCallable().call(entityRequest).entityTypesList.forEach { entityType ->
                     if(entityType.displayName.equals("product-type")) {
                         val entityTypeBuilder = entityClient.getEntityType(entityType.name).toBuilder()
                         val updatedEntityType = entityTypeBuilder.addAllEntities(
                             listOf<EntityType.Entity>(
-                                EntityType.Entity.newBuilder().setValue(masterCategory.title).build()
-                                //.addAllSynonyms(aliases).build()
+                                EntityType.Entity.newBuilder().setValue(masterCategory.title)
+                                .addAllSynonyms(aliases).build()
                             )
                         ).build()
 
@@ -340,6 +347,8 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                     }
                 }
             }
+
+            entityClient.shutdownNow()
         } catch (exception: Exception) {
             //TODO Inform the UI
             return
@@ -354,13 +363,17 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
             val entityRequest = ListEntityTypesRequest.newBuilder().setParent(AgentName.of(AppConstants.projectId).toString()).build()
 
             subcategories.forEach { subcategory ->
+                val aliases = localDatabase.SubcategoryAliasDao().getSubcategoryAlias(subcategory.id).map {
+                    it.alias
+                }
+
                 entityClient.listEntityTypesCallable().call(entityRequest).entityTypesList.forEach { entityType ->
                     if(entityType.displayName.equals("product-subtype")) {
                         val entityTypeBuilder = entityClient.getEntityType(entityType.name).toBuilder()
                         val updatedEntityType = entityTypeBuilder.addAllEntities(
                             listOf<EntityType.Entity>(
-                                EntityType.Entity.newBuilder().setValue(subcategory.title).build()
-                                //.addAllSynonyms(aliases).build()
+                                EntityType.Entity.newBuilder().setValue(subcategory.title)
+                                .addAllSynonyms(aliases).build()
                             )
                         ).build()
 
@@ -371,6 +384,8 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                     }
                 }
             }
+
+            entityClient.shutdownNow()
         } catch (exception: Exception) {
             //TODO Inform the UI
             return
