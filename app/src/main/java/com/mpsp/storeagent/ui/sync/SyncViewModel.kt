@@ -23,7 +23,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
     val WITH_DELIMITER = "((?<=%1\$s)|(?=%1\$s))"
 
     private val database = FirebaseDatabase.getInstance()
-    private val productParametersDatabaseRef = database.getReference("productParams")
+    private val productParametersDatabaseRef = database.getReference("")
 
     private val localDatabase: AppDatabase = App.getInstance().getDatabase()
 
@@ -83,110 +83,32 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
             val valueListener = object: ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val trainingPhrases = snapshot.value as HashMap<String, ArrayList<String>>
-                    val productTrainingPhrases = trainingPhrases["trainingPhrases"]
-                    val productTrainingPhrasesWithQuantity = trainingPhrases["trainingPhrasesWithQuantity"]
+                    val parameters = snapshot.getValue(SyncParameters::class.java)
 
-                    if(productTrainingPhrases.isNullOrEmpty() || productTrainingPhrasesWithQuantity.isNullOrEmpty())
+                    if(parameters == null || parameters.productParams == null || parameters.masterCategoryParams == null)
+                        //TODO Inform the UI
+                        return
+
+                    val productTrainingPhrases = parameters.productParams.trainingPhrases
+                    val productTrainingPhrasesWithQuantity = parameters.productParams.trainingPhrasesWithQuantity
+
+                    if(productTrainingPhrases.isEmpty() || productTrainingPhrasesWithQuantity.isEmpty())
                         //TODO Inform the UI
                         return
 
                     viewModelScope.launch(Dispatchers.IO) {
-                        val finalProductTrainingPhrases = arrayListOf<String>()
-                        val finalProductWithQuantityTrainingPhrases = arrayListOf<String>()
-
                         val products = localDatabase.ProductDao().getProducts()
-                        createProductEntitiesAndSynonyms(products)
+                        createProductEntities(products)
 
                         val masterCategories = localDatabase.MasterCategoryDao().getMasterCategories()
-                        createProductTypes(masterCategories)
+                        createProductMasterCategories(masterCategories)
 
                         val subcategories = localDatabase.SubcategoryDao().getSubcategories()
-                        createProductSubtypes(subcategories)
+                        createProductSubcategories(subcategories)
 
-                        //Create the training phrases
-                        products.forEach { product ->
-                            productTrainingPhrases.forEach { productTrainingPhrase ->
-                                val startingPoint = productTrainingPhrase.indexOfFirst { it == '@' }
-                                val endingPoint = productTrainingPhrase.indexOfLast { it == '@' }
-                                if(startingPoint < 0 || endingPoint < 0)
-                                    //TODO Inform the UI
-                                    return@launch
+                        createProductTrainingPhrases(products, productTrainingPhrases, productTrainingPhrasesWithQuantity)
 
-                                val processedTrainingPhrase = productTrainingPhrase.replaceRange(startingPoint + 1, endingPoint, product.name)
-                                finalProductTrainingPhrases.add(processedTrainingPhrase)
-                            }
-
-                            productTrainingPhrasesWithQuantity.forEach { productTrainingPhraseWithQuantity ->
-                                val startingPoint = productTrainingPhraseWithQuantity.indexOfFirst { it == '@' }
-                                val endingPoint = productTrainingPhraseWithQuantity.indexOfLast { it == '@' }
-                                if(startingPoint < 0 || endingPoint < 0)
-                                //TODO Inform the UI
-                                    return@launch
-
-                                val processedTrainingPhrase = productTrainingPhraseWithQuantity.replaceRange(startingPoint + 1, endingPoint, product.name)
-                                finalProductWithQuantityTrainingPhrases.add(processedTrainingPhrase)
-                            }
-                        }
-
-                        if(finalProductTrainingPhrases.isNullOrEmpty() || finalProductWithQuantityTrainingPhrases.isNullOrEmpty())
-                            //TODO Inform the UI
-                            return@launch
-
-                        val intentClientSettings: IntentsSettings = IntentsSettings.newBuilder()
-                            .setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
-                        val intentClient: IntentsClient = IntentsClient.create(intentClientSettings)
-                        val parentAgent: AgentName = AgentName.of(AppConstants.projectId)
-
-                        val agentTrainingPhrasesProduct = createAgentProductTrainingPhrases(finalProductTrainingPhrases)
-                        val agentTrainingPhrasesProductWithQuantity = createAgentProductTrainingPhrasesWithQuantity(finalProductWithQuantityTrainingPhrases)
-
-                        //Communication with Agent to send product and product with quantity training phrases
-                        try {
-                            val listIntentsRequest = ListIntentsRequest.newBuilder().setIntentView(IntentView.INTENT_VIEW_FULL).setParent(parentAgent.toString()).build()
-                            val response: ListIntentsResponse = intentClient.listIntentsCallable().call(listIntentsRequest)
-                            response.intentsList.forEach { intent ->
-                                if (intent.displayName.equals("choose-product-from-product-type")) {
-                                    agentTrainingPhrasesProduct.addAll(intent.trainingPhrasesList)
-
-                                    val intentBuilder = intentClient.getIntent(intent.name).toBuilder()
-                                    intentBuilder.addAllTrainingPhrases(agentTrainingPhrasesProduct)
-                                    val intent: Intent = intentBuilder.build()
-
-                                    val fieldMask = FieldMask.newBuilder().addPaths("training_phrases").build()
-
-                                    val request = UpdateIntentRequest.newBuilder()
-                                        .setIntent(intent)
-                                        .setUpdateMask(fieldMask)
-                                        .build()
-
-                                    // Make API request to update intent using fieldmask
-                                    val response: Intent = intentClient.updateIntent(request)
-                                }
-
-                                if (intent.displayName.equals("choose-product-with-quantity")) {
-                                    agentTrainingPhrasesProductWithQuantity.addAll(intent.trainingPhrasesList)
-
-                                    val intentBuilder = intentClient.getIntent(intent.name).toBuilder()
-                                    intentBuilder.addAllTrainingPhrases(agentTrainingPhrasesProductWithQuantity)
-                                    val intent: Intent = intentBuilder.build()
-
-                                    val fieldMask = FieldMask.newBuilder().addPaths("training_phrases").build()
-
-                                    val request = UpdateIntentRequest.newBuilder()
-                                        .setIntent(intent)
-                                        .setUpdateMask(fieldMask)
-                                        .build()
-
-                                    // Make API request to update intent using fieldmask
-                                    val response: Intent = intentClient.updateIntent(request)
-                                }
-                            }
-                        } catch (ex: Exception) {
-                            ex.toString()
-                            //TODO Inform UI - Update of training phrases failed.
-                            return@launch
-                        }
+                        createMasterCategoryTrainingPhrases(parameters.masterCategoryParams.trainingPhrases, masterCategories)
                     }
                 }
 
@@ -200,7 +122,156 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
         }
     }
 
-    private fun createProductEntitiesAndSynonyms(products: List<Product>) {
+    private fun createProductTrainingPhrases(
+        products: List<Product>,
+        productTrainingPhrases: ArrayList<String>,
+        productTrainingPhrasesWithQuantity: ArrayList<String>
+    ) {
+        val finalProductTrainingPhrases = arrayListOf<String>()
+        val finalProductWithQuantityTrainingPhrases = arrayListOf<String>()
+
+        products.forEach { product ->
+            productTrainingPhrases.forEach { productTrainingPhrase ->
+                val startingPoint = productTrainingPhrase.indexOfFirst { it == '@' }
+                val endingPoint = productTrainingPhrase.indexOfLast { it == '@' }
+                if(startingPoint < 0 || endingPoint < 0)
+                //TODO Inform the UI
+                    return
+
+                val processedTrainingPhrase = productTrainingPhrase.replaceRange(startingPoint + 1, endingPoint, product.name)
+                finalProductTrainingPhrases.add(processedTrainingPhrase)
+            }
+
+            productTrainingPhrasesWithQuantity.forEach { productTrainingPhraseWithQuantity ->
+                val startingPoint = productTrainingPhraseWithQuantity.indexOfFirst { it == '@' }
+                val endingPoint = productTrainingPhraseWithQuantity.indexOfLast { it == '@' }
+                if(startingPoint < 0 || endingPoint < 0)
+                //TODO Inform the UI
+                    return
+
+                val processedTrainingPhrase = productTrainingPhraseWithQuantity.replaceRange(startingPoint + 1, endingPoint, product.name)
+                finalProductWithQuantityTrainingPhrases.add(processedTrainingPhrase)
+            }
+        }
+
+        if(finalProductTrainingPhrases.isEmpty() || finalProductWithQuantityTrainingPhrases.isEmpty())
+        //TODO Inform the UI
+            return
+
+        val intentClientSettings: IntentsSettings = IntentsSettings.newBuilder()
+            .setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
+        val intentClient: IntentsClient = IntentsClient.create(intentClientSettings)
+        val parentAgent: AgentName = AgentName.of(AppConstants.projectId)
+
+        val agentTrainingPhrasesProduct = createAgentProductTrainingPhrases(finalProductTrainingPhrases)
+        val agentTrainingPhrasesProductWithQuantity = createAgentProductTrainingPhrasesWithQuantity(finalProductWithQuantityTrainingPhrases)
+
+        //Communication with Agent to send product and product with quantity training phrases
+        try {
+            val listIntentsRequest = ListIntentsRequest.newBuilder().setIntentView(IntentView.INTENT_VIEW_FULL).setParent(parentAgent.toString()).build()
+            val response: ListIntentsResponse = intentClient.listIntentsCallable().call(listIntentsRequest)
+            response.intentsList.forEach { intent ->
+                if (intent.displayName.equals("choose-product-from-product-type")) {
+                    agentTrainingPhrasesProduct.addAll(intent.trainingPhrasesList)
+
+                    val intentBuilder = intentClient.getIntent(intent.name).toBuilder()
+                    intentBuilder.addAllTrainingPhrases(agentTrainingPhrasesProduct)
+                    val intent: Intent = intentBuilder.build()
+
+                    val fieldMask = FieldMask.newBuilder().addPaths("training_phrases").build()
+
+                    val request = UpdateIntentRequest.newBuilder()
+                        .setIntent(intent)
+                        .setUpdateMask(fieldMask)
+                        .build()
+
+                    // Make API request to update intent using fieldmask
+                    val response: Intent = intentClient.updateIntent(request)
+                }
+
+                if (intent.displayName.equals("choose-product-with-quantity")) {
+                    agentTrainingPhrasesProductWithQuantity.addAll(intent.trainingPhrasesList)
+
+                    val intentBuilder = intentClient.getIntent(intent.name).toBuilder()
+                    intentBuilder.addAllTrainingPhrases(agentTrainingPhrasesProductWithQuantity)
+                    val intent: Intent = intentBuilder.build()
+
+                    val fieldMask = FieldMask.newBuilder().addPaths("training_phrases").build()
+
+                    val request = UpdateIntentRequest.newBuilder()
+                        .setIntent(intent)
+                        .setUpdateMask(fieldMask)
+                        .build()
+
+                    // Make API request to update intent using fieldmask
+                    val response: Intent = intentClient.updateIntent(request)
+                }
+            }
+        } catch (ex: Exception) {
+            ex.toString()
+            //TODO Inform UI - Update of training phrases failed.
+            return
+        }
+    }
+
+    private fun createMasterCategoryTrainingPhrases(
+        masterCategoryTrainingPhrases: List<String>,
+        masterCategories: List<MasterCategory>
+    ) {
+        val finalMasterCategoryTrainingPhrases = arrayListOf<String>()
+
+        masterCategories.forEach { masterCategory ->
+            masterCategoryTrainingPhrases.forEach { trainingPhrase ->
+                val startingPoint = trainingPhrase.indexOfFirst { it == '@' }
+                val endingPoint = trainingPhrase.indexOfLast { it == '@' }
+                if(startingPoint < 0 || endingPoint < 0)
+                //TODO Inform the UI
+                    return
+
+                val processedTrainingPhrase = trainingPhrase.replaceRange(startingPoint + 1, endingPoint, masterCategory.title)
+                finalMasterCategoryTrainingPhrases.add(processedTrainingPhrase)
+            }
+        }
+
+        if(finalMasterCategoryTrainingPhrases.isEmpty())
+            return
+
+        val intentClientSettings: IntentsSettings = IntentsSettings.newBuilder()
+            .setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
+        val intentClient: IntentsClient = IntentsClient.create(intentClientSettings)
+        val parentAgent: AgentName = AgentName.of(AppConstants.projectId)
+
+        val agentTrainingPhrasesMasterCat = createAgentMasterCategoryTrainingPhrases(finalMasterCategoryTrainingPhrases)
+
+        try {
+            val listIntentsRequest = ListIntentsRequest.newBuilder().setIntentView(IntentView.INTENT_VIEW_FULL).setParent(parentAgent.toString()).build()
+            val response: ListIntentsResponse = intentClient.listIntentsCallable().call(listIntentsRequest)
+
+            response.intentsList.forEach { intent ->
+                if (intent.displayName.equals("choose-product-type")) {
+                    agentTrainingPhrasesMasterCat.addAll(intent.trainingPhrasesList)
+
+                    val intentBuilder = intentClient.getIntent(intent.name).toBuilder()
+                    intentBuilder.addAllTrainingPhrases(agentTrainingPhrasesMasterCat)
+                    val intent: Intent = intentBuilder.build()
+
+                    val fieldMask = FieldMask.newBuilder().addPaths("training_phrases").build()
+
+                    val request = UpdateIntentRequest.newBuilder()
+                        .setIntent(intent)
+                        .setUpdateMask(fieldMask)
+                        .build()
+
+                    // Make API request to update intent using fieldmask
+                    val response: Intent = intentClient.updateIntent(request)
+                }
+            }
+        } catch (exception: Exception) {
+            return
+        }
+    }
+
+    private fun createProductEntities(products: List<Product>) {
         val entityClient = EntityTypesClient.create(
             EntityTypesSettings.newBuilder().setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
         )
@@ -238,7 +309,9 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
         }
     }
 
-    private fun createAgentProductTrainingPhrases(finalProductTrainingPhrases: ArrayList<String>): ArrayList<Intent.TrainingPhrase> {
+    private fun createAgentProductTrainingPhrases(
+        finalProductTrainingPhrases: ArrayList<String>
+    ): ArrayList<Intent.TrainingPhrase> {
         val agentTrainingPhrasesProduct = arrayListOf<Intent.TrainingPhrase>()
         finalProductTrainingPhrases.forEach { phrase ->
             val startingPoint = phrase.indexOfFirst { it == '@' }
@@ -252,6 +325,34 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                 Intent.TrainingPhrase.Part.newBuilder().setText(partBeforeProduct).build(),
                 Intent.TrainingPhrase.Part.newBuilder().setText(product).setEntityType("@product:product").build(),
                 Intent.TrainingPhrase.Part.newBuilder().setText(partAfterProduct).build(),
+            )
+
+            agentTrainingPhrasesProduct.add(
+                Intent.TrainingPhrase.newBuilder().addAllParts(
+                    parts
+                ).build()
+            )
+        }
+
+        return agentTrainingPhrasesProduct
+    }
+
+    private fun createAgentMasterCategoryTrainingPhrases(
+        masterCategoryTrainingPhrases: ArrayList<String>
+    ): ArrayList<Intent.TrainingPhrase> {
+        val agentTrainingPhrasesProduct = arrayListOf<Intent.TrainingPhrase>()
+        masterCategoryTrainingPhrases.forEach { phrase ->
+            val startingPoint = phrase.indexOfFirst { it == '@' }
+            val endingPoint = phrase.indexOfLast { it == '@' }
+
+            val partBeforeMasterCategory = phrase.substringBefore("@")
+            val masterCategory = phrase.subSequence(startingPoint + 1, endingPoint).toString()
+            val partAfterMasterCategory = phrase.substringAfterLast("@")
+
+            val parts = arrayListOf(
+                Intent.TrainingPhrase.Part.newBuilder().setText(partBeforeMasterCategory).build(),
+                Intent.TrainingPhrase.Part.newBuilder().setText(masterCategory).setEntityType("@product-type:product-type").build(),
+                Intent.TrainingPhrase.Part.newBuilder().setText(partAfterMasterCategory).build(),
             )
 
             agentTrainingPhrasesProduct.add(
@@ -318,7 +419,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
         return agentTrainingPhrasesProductWithQuantity
     }
 
-    private fun createProductTypes(masterCategories: List<MasterCategory>) {
+    private fun createProductMasterCategories(masterCategories: List<MasterCategory>) {
         try {
             val entityClient = EntityTypesClient.create(
                 EntityTypesSettings.newBuilder().setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
@@ -355,7 +456,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
         }
     }
 
-    private fun createProductSubtypes(subcategories: List<Subcategory>) {
+    private fun createProductSubcategories(subcategories: List<Subcategory>) {
         try {
             val entityClient = EntityTypesClient.create(
                 EntityTypesSettings.newBuilder().setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
