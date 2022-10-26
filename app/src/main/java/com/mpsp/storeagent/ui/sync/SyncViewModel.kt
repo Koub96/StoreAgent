@@ -33,51 +33,115 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
     fun initiateSyncProcess() {
         viewModelScope.launch(Dispatchers.IO) {
-//            App.getInstance().getDatabase().ProductDao().insertProducts(
-//                arrayListOf(
-//                    Product("1", "Playstation 2"),
-//                    Product("2", "Gameboy SP")
-//                )
-//            )
-//
-//            App.getInstance().getDatabase().ProductAliasDao().insertProductAlias(
-//                arrayListOf(
-//                    ProductAlias("1", "1", "Alias 1"),
-//                    ProductAlias("2", "1", "Alias 2"),
-//                    ProductAlias("3", "2", "Alias 1"),
-//                    ProductAlias("4", "2", "Alias 2")
-//                )
-//            )
+
 //            App.getInstance().getDatabase().SubcategoryDao().insertSubcategory(
 //                arrayListOf(
-//                    Subcategory("1", "Subcategory 1", "Field1", "Numeric1"),
-//                    Subcategory("2", "Subcategory 2","Field1", "Numeric1"),
-//                    Subcategory("3", "Subcategory 3","Field1", "Numeric1"),
-//                    Subcategory("4", "Subcategory 4","Field1", "Numeric1"),
+//                    Subcategory("1", "Playstation 5", "Field1", "Numeric1"),
+//                    Subcategory("2", "Xbox Series X","Field1", "Numeric1"),
+//                    Subcategory("3", "Xiaomi","Field1", "Numeric1"),
+//                    Subcategory("4", "Samsung","Field1", "Numeric1"),
 //                )
 //            )
 //            App.getInstance().getDatabase().MasterCategoryDao().insertMasterCategory(
 //                arrayListOf(
-//                    MasterCategory("1", "Master Category 1"),
-//                    MasterCategory("2", "Master Category 2"),
-//                    MasterCategory("3", "Master Category 3"),
-//                    MasterCategory("4", "Master Category 4")
+//                    MasterCategory("1", "Consoles"),
+//                    MasterCategory("2", "SmartPhones"),
 //                )
 //            )
 //            App.getInstance().getDatabase().SubcategoryAliasDao().insertSubcategoryAlias(
 //                arrayListOf(
-//                    SubcategoryAlias("1", "1", "Alias subcategory 1"),
-//                    SubcategoryAlias("2", "2", "Alias subcategory 2"),
-//                    SubcategoryAlias("3", "3", "Alias subcategory 3"),
-//                    SubcategoryAlias("4", "4", "Alias subcategory 4"),
+//                    SubcategoryAlias(
+//                        "1",
+//                        "1",
+//                        "PS5"
+//                    ),
+//                    SubcategoryAlias(
+//                        "2",
+//                        "2",
+//                        "Xbox X"
+//                    ),
+//                    SubcategoryAlias(
+//                        "3",
+//                        "3",
+//                        "Xiaomi Phone"
+//                    ),
+//                    SubcategoryAlias(
+//                        "4",
+//                        "4",
+//                        "Samsung Phone"
+//                    ),
 //                )
 //            )
 //            App.getInstance().getDatabase().MasterCategoryAliasDao().insertMasterAlias(
 //                arrayListOf(
-//                    MasterCategoryAlias("1", "1", "Alias Master Category 1"),
-//                    MasterCategoryAlias("2", "2", "Alias Master Category 2"),
-//                    MasterCategoryAlias("3", "3", "Alias Master Category 3"),
-//                    MasterCategoryAlias("4", "4", "Alias Master Category 4"),
+//                    MasterCategoryAlias(
+//                        "1",
+//                        "1",
+//                        "Gaming Consoles"
+//                    ),
+//                    MasterCategoryAlias(
+//                        "2",
+//                        "2",
+//                        "Phones"
+//                    )
+//                )
+//            )
+//            App.getInstance().getDatabase().MasterSubcategoryDao().insertMasterSubcategory(
+//                arrayListOf(
+//                    MasterSubcategory("1", "1"),
+//                    MasterSubcategory("1", "2"),
+//                    MasterSubcategory("2", "3"),
+//                    MasterSubcategory("2", "4"),
+//                )
+//            )
+//            App.getInstance().getDatabase().ProductDao().insertProducts(
+//                arrayListOf(
+//                    Product(
+//                        "1",
+//                        "1",
+//                        "1",
+//                        "Playstation 5 No Disc Model"
+//                    ),
+//                    Product(
+//                        "2",
+//                        "1",
+//                        "1",
+//                        "Playstation 5 Disc Model"
+//                    ),
+//                    Product(
+//                        "3",
+//                        "1",
+//                        "2",
+//                        "Xbox Series X Disc Model"
+//                    ),
+//                    Product(
+//                        "4",
+//                        "1",
+//                        "2",
+//                        "Xbox Series X Disc Model"
+//                    ),
+//                    Product(
+//                        "5",
+//                        "2",
+//                        "3",
+//                        "Xiaomi Redmi 2"
+//                    ),
+//                    Product(
+//                        "6",
+//                        "2",
+//                        "4",
+//                        "Samsung Galaxy 3"
+//                    )
+//                )
+//            )
+//            App.getInstance().getDatabase().ProductAliasDao().insertProductAlias(
+//                arrayListOf(
+//                    ProductAlias("1", "1", "PS5"),
+//                    ProductAlias("2", "2", "PS5"),
+//                    ProductAlias("3", "3", "Xbox Series X"),
+//                    ProductAlias("4", "4", "Xbox Series X"),
+//                    ProductAlias("5", "5", "Xiaomi 2"),
+//                    ProductAlias("6", "6", "Samsung 3")
 //                )
 //            )
 
@@ -109,6 +173,8 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                         createProductTrainingPhrases(products, productTrainingPhrases, productTrainingPhrasesWithQuantity)
 
                         createMasterCategoryTrainingPhrases(parameters.masterCategoryParams.trainingPhrases, masterCategories)
+
+                        //createMasterCategorySubcategoryTrainingPhrases(parameters.subcategoryParams.trainingPhrases, subcategories)
                     }
                 }
 
@@ -242,6 +308,67 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
         val parentAgent: AgentName = AgentName.of(AppConstants.projectId)
 
         val agentTrainingPhrasesMasterCat = createAgentMasterCategoryTrainingPhrases(finalMasterCategoryTrainingPhrases)
+
+        try {
+            val listIntentsRequest = ListIntentsRequest.newBuilder().setIntentView(IntentView.INTENT_VIEW_FULL).setParent(parentAgent.toString()).build()
+            val response: ListIntentsResponse = intentClient.listIntentsCallable().call(listIntentsRequest)
+
+            response.intentsList.forEach { intent ->
+                if (intent.displayName.equals("choose-product-type")) {
+                    agentTrainingPhrasesMasterCat.addAll(intent.trainingPhrasesList)
+
+                    val intentBuilder = intentClient.getIntent(intent.name).toBuilder()
+                    intentBuilder.addAllTrainingPhrases(agentTrainingPhrasesMasterCat)
+                    val intent: Intent = intentBuilder.build()
+
+                    val fieldMask = FieldMask.newBuilder().addPaths("training_phrases").build()
+
+                    val request = UpdateIntentRequest.newBuilder()
+                        .setIntent(intent)
+                        .setUpdateMask(fieldMask)
+                        .build()
+
+                    // Make API request to update intent using fieldmask
+                    val response: Intent = intentClient.updateIntent(request)
+                }
+            }
+        } catch (exception: Exception) {
+            return
+        }
+    }
+
+    /*
+    Updates the training phrases for the choose-product-type-subtype intent
+     */
+    private fun createMasterCategorySubcategoryTrainingPhrases(
+        masterSubcategoryTrainingPhrases: List<String>,
+        masterCategories: List<MasterCategory>,
+        subcategories: List<Subcategory>
+    ) {
+        val finalMasterSubcategoryTrainingPhrases = arrayListOf<String>()
+
+        subcategories.forEach { subcategory ->
+            masterSubcategoryTrainingPhrases.forEach { trainingPhrase ->
+                val startingPoint = trainingPhrase.indexOfFirst { it == '@' }
+                val endingPoint = trainingPhrase.indexOfLast { it == '@' }
+                if(startingPoint < 0 || endingPoint < 0)
+                //TODO Inform the UI
+                    return
+
+                val processedTrainingPhrase = trainingPhrase.replaceRange(startingPoint + 1, endingPoint, subcategory.title)
+                finalMasterSubcategoryTrainingPhrases.add(processedTrainingPhrase)
+            }
+        }
+
+        if(finalMasterSubcategoryTrainingPhrases.isEmpty())
+            return
+
+        val intentClientSettings: IntentsSettings = IntentsSettings.newBuilder()
+            .setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
+        val intentClient: IntentsClient = IntentsClient.create(intentClientSettings)
+        val parentAgent: AgentName = AgentName.of(AppConstants.projectId)
+
+        val agentTrainingPhrasesMasterCat = createAgentMasterCategoryTrainingPhrases(finalMasterSubcategoryTrainingPhrases)
 
         try {
             val listIntentsRequest = ListIntentsRequest.newBuilder().setIntentView(IntentView.INTENT_VIEW_FULL).setParent(parentAgent.toString()).build()
