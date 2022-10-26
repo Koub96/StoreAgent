@@ -403,6 +403,8 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
             EntityTypesSettings.newBuilder().setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
         )
         val entityRequest = ListEntityTypesRequest.newBuilder().setParent(AgentName.of(AppConstants.projectId).toString()).build()
+
+        val entitiesList = arrayListOf<EntityType.Entity>()
         //Create the Product Entities with their Synonyms
         products.forEach { product ->
             //This query is not suspending because this function will run on IO thread.
@@ -411,28 +413,30 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                 productAlias.alias
             }
 
-            try {
-                entityClient.listEntityTypesCallable().call(entityRequest).entityTypesList.forEach { entityType ->
-                    if(entityType.displayName.equals("product")) {
-                        val entityTypeBuilder = entityClient.getEntityType(entityType.name).toBuilder()
-                        val updatedEntityType = entityTypeBuilder.addAllEntities(
-                            listOf<EntityType.Entity>(
-                                EntityType.Entity.newBuilder().setValue(product.name)
-                                    .addAllSynonyms(aliases).build()
-                            )
-                        ).build()
+            entitiesList.add(
+                EntityType.Entity.newBuilder().setValue(product.name)
+                    .addAllSynonyms(aliases).build()
+            )
+        }
 
-                        val fieldMask = FieldMask.newBuilder().addPaths("entities").build()
-                        val request = UpdateEntityTypeRequest.newBuilder().setEntityType(updatedEntityType).setUpdateMask(fieldMask).build()
-                        val response = entityClient.updateEntityType(request)
-                        response.toString()
-                    }
+        try {
+            entityClient.listEntityTypesCallable().call(entityRequest).entityTypesList.forEach { entityType ->
+                if(entityType.displayName.equals("product")) {
+                    val entityTypeBuilder = entityClient.getEntityType(entityType.name).toBuilder()
+                    val updatedEntityType = entityTypeBuilder.addAllEntities(
+                        entitiesList
+                    ).build()
+
+                    val fieldMask = FieldMask.newBuilder().addPaths("entities").build()
+                    val request = UpdateEntityTypeRequest.newBuilder().setEntityType(updatedEntityType).setUpdateMask(fieldMask).build()
+                    val response = entityClient.updateEntityType(request)
+                    response.toString()
                 }
-
-                entityClient.shutdownNow()
-            } catch (ex: Exception) {
-                //TODO Inform the UI
             }
+
+            entityClient.shutdownNow()
+        } catch (ex: Exception) {
+            //TODO Inform the UI
         }
     }
 
