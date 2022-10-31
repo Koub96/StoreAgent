@@ -161,20 +161,42 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                         return
 
                     viewModelScope.launch(Dispatchers.IO) {
+                        //Creates product entities
                         val products = localDatabase.ProductDao().getProducts()
                         createProductEntities(products)
 
+                        //creates product master category entities
                         val masterCategories = localDatabase.MasterCategoryDao().getMasterCategories()
                         createProductMasterCategories(masterCategories)
 
+                        //creates product subcategory entities
                         val subcategories = localDatabase.SubcategoryDao().getSubcategories()
                         createProductSubcategories(subcategories)
 
+                        //creates product training phrases for intent choose-product-from-product-type
+                        //and choose-product-with-quantity
                         createProductTrainingPhrases(products, productTrainingPhrases, productTrainingPhrasesWithQuantity)
 
+                        //creates master category training phrases for intent choose-product-type
                         createMasterCategoryTrainingPhrases(parameters.masterCategoryParams.trainingPhrases, masterCategories)
 
-                        //createMasterCategorySubcategoryTrainingPhrases(parameters.subcategoryParams.trainingPhrases, subcategories)
+                        //creates master and subcategory training phrases for intent choose-product-type-and-subtype
+                        val masterToSubcategories: MutableMap<MasterCategory, ArrayList<Subcategory>> = mutableMapOf()
+                        val masterSubcategoriesRelation = localDatabase.MasterSubcategoryDao().getMasterSubcategories()
+                        masterSubcategoriesRelation.forEach {
+                            val masterCategory = localDatabase.MasterCategoryDao().getMasterCategory(it.masterCategoryID)
+                            val subcategory = localDatabase.SubcategoryDao().getSubcategory(it.subcategoryID)
+
+                            if(!masterToSubcategories.containsKey(masterCategory)) {
+                                masterToSubcategories[masterCategory] = arrayListOf(subcategory)
+                            } else {
+                                masterToSubcategories[masterCategory]?.add(subcategory)
+                            }
+                        }
+                        createMasterCategorySubcategoryTrainingPhrases(
+                            parameters.masterAndSubcategoryParams.trainingPhrases,
+                            masterToSubcategories
+                        )
                     }
                 }
 
@@ -342,21 +364,22 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
      */
     private fun createMasterCategorySubcategoryTrainingPhrases(
         masterSubcategoryTrainingPhrases: List<String>,
-        masterCategories: List<MasterCategory>,
-        subcategories: List<Subcategory>
+        masterToSubcategories: MutableMap<MasterCategory, ArrayList<Subcategory>>
     ) {
         val finalMasterSubcategoryTrainingPhrases = arrayListOf<String>()
 
-        subcategories.forEach { subcategory ->
-            masterSubcategoryTrainingPhrases.forEach { trainingPhrase ->
-                val startingPoint = trainingPhrase.indexOfFirst { it == '@' }
-                val endingPoint = trainingPhrase.indexOfLast { it == '@' }
-                if(startingPoint < 0 || endingPoint < 0)
-                //TODO Inform the UI
-                    return
+        masterToSubcategories.forEach { entry ->
+            val masterCategory = entry.key
+            val subcategories = entry.value
 
-                val processedTrainingPhrase = trainingPhrase.replaceRange(startingPoint + 1, endingPoint, subcategory.title)
-                finalMasterSubcategoryTrainingPhrases.add(processedTrainingPhrase)
+            subcategories.forEach { subcategory ->
+                masterSubcategoryTrainingPhrases.forEach { trainingPhrase ->
+                    val processedPhrase = trainingPhrase
+                        .replace("mastercategory", masterCategory.title)
+                        .replace("subcategory", subcategory.title)
+
+                    finalMasterSubcategoryTrainingPhrases.add(processedPhrase)
+                }
             }
         }
 
@@ -368,7 +391,9 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
         val intentClient: IntentsClient = IntentsClient.create(intentClientSettings)
         val parentAgent: AgentName = AgentName.of(AppConstants.projectId)
 
-        val agentTrainingPhrasesMasterCat = createAgentMasterCategoryTrainingPhrases(finalMasterSubcategoryTrainingPhrases)
+        val agentTrainingPhrasesMasterCat = createAgentMasterSubcategoriesTrainingPhrases(
+            finalMasterSubcategoryTrainingPhrases
+        )
 
         try {
             val listIntentsRequest = ListIntentsRequest.newBuilder().setIntentView(IntentView.INTENT_VIEW_FULL).setParent(parentAgent.toString()).build()
@@ -491,6 +516,35 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                     parts
                 ).build()
             )
+        }
+
+        return agentTrainingPhrasesProduct
+    }
+
+    private fun createAgentMasterSubcategoriesTrainingPhrases(
+        masterSubcategoryTrainingPhrases: ArrayList<String>
+    ): ArrayList<Intent.TrainingPhrase> {
+        val agentTrainingPhrasesProduct = arrayListOf<Intent.TrainingPhrase>()
+        masterSubcategoryTrainingPhrases.forEach { phrase ->
+            val firstToken = phrase.indexOfFirst { it == '@' }
+            val secondToken = phrase.indexOf("@", firstToken + 1)
+
+            val firstPart = phrase.subSequence(0, firstToken)
+            val secondPart = phrase.subSequence(firstToken, secondToken + 1)
+            firstPart.toString()
+            secondPart.toString()
+
+//            val parts = arrayListOf(
+//                Intent.TrainingPhrase.Part.newBuilder().setText(partBeforeMasterCategory).build(),
+//                Intent.TrainingPhrase.Part.newBuilder().setText(masterCategory).setEntityType("@product-type:product-type").build(),
+//                Intent.TrainingPhrase.Part.newBuilder().setText(partAfterMasterCategory).build(),
+//            )
+//
+//            agentTrainingPhrasesProduct.add(
+//                Intent.TrainingPhrase.newBuilder().addAllParts(
+//                    parts
+//                ).build()
+//            )
         }
 
         return agentTrainingPhrasesProduct

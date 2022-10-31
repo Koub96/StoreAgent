@@ -13,4 +13,7 @@ interface SubcategoryDao {
 
     @Query("SELECT * from Subcategory")
     suspend fun getSubcategories(): List<Subcategory>
+
+    @Query("SELECT * from Subcategory WHERE Subcategory.id = :subcategoryID")
+    suspend fun getSubcategory(subcategoryID: String): Subcategory
 }

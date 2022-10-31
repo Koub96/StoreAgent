@@ -2,7 +2,7 @@ package com.mpsp.storeagent.models
 
 data class SyncParameters(
     val masterCategoryParams: MasterCategoryParameters = MasterCategoryParameters(),
-    val subcategoryParams: MasterCategorySubcategoryParams = MasterCategorySubcategoryParams(),
+    val masterAndSubcategoryParams: MasterCategorySubcategoryParams = MasterCategorySubcategoryParams(),
     val productParams: ProductParameters = ProductParameters()
 )
 

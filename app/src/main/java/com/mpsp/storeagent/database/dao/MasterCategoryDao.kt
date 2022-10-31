@@ -13,4 +13,7 @@ interface MasterCategoryDao {
 
     @Query("SELECT * FROM MasterCategory")
     suspend fun getMasterCategories(): List<MasterCategory>
+
+    @Query("SELECT * FROM MasterCategory WHERE MasterCategory.id = :masterCategoryID")
+    suspend fun getMasterCategory(masterCategoryID: String): MasterCategory
 }
