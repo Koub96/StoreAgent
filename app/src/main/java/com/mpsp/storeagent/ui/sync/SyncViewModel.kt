@@ -12,10 +12,12 @@ import com.google.protobuf.FieldMask
 import com.mpsp.storeagent.App
 import com.mpsp.storeagent.AppConstants
 import com.mpsp.storeagent.database.AppDatabase
-import com.mpsp.storeagent.models.*
+import com.mpsp.storeagent.models.MasterCategory
+import com.mpsp.storeagent.models.Product
+import com.mpsp.storeagent.models.Subcategory
+import com.mpsp.storeagent.models.SyncParameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 
 data class SyncState(val title: String = "") : MavericksState
 
@@ -363,10 +365,11 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
     Updates the training phrases for the choose-product-type-subtype intent
      */
     private fun createMasterCategorySubcategoryTrainingPhrases(
-        masterSubcategoryTrainingPhrases: List<String>,
+        masterSubcategoryTrainingPhrases: ArrayList<ArrayList<String>>,
         masterToSubcategories: MutableMap<MasterCategory, ArrayList<Subcategory>>
     ) {
-        val finalMasterSubcategoryTrainingPhrases = arrayListOf<String>()
+        val finalMasterSubcategoryTrainingPhrases = arrayListOf<Intent.TrainingPhrase>()
+        val phraseParts: ArrayList<Intent.TrainingPhrase.Part> = arrayListOf()
 
         masterToSubcategories.forEach { entry ->
             val masterCategory = entry.key
@@ -374,11 +377,36 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
             subcategories.forEach { subcategory ->
                 masterSubcategoryTrainingPhrases.forEach { trainingPhrase ->
-                    val processedPhrase = trainingPhrase
-                        .replace("mastercategory", masterCategory.title)
-                        .replace("subcategory", subcategory.title)
+                    trainingPhrase.forEach { part ->
+                        if(part.contains("@mastercategory@"))
+                        {
+                            phraseParts.add(
+                                Intent.TrainingPhrase.Part.newBuilder()
+                                    .setText(part.replace("@mastercategory@", masterCategory.title))
+                                    .setEntityType("@product-type:product-type")
+                                    .build()
+                            )
+                        } else if(part.contains("@subcategory@")) {
+                            phraseParts.add(
+                                Intent.TrainingPhrase.Part.newBuilder()
+                                    .setText(part.replace("@subcategory@", subcategory.title))
+                                    .setEntityType("@product-subtype:product-subtype")
+                                    .build()
+                            )
+                        } else {
+                            phraseParts.add(
+                                Intent.TrainingPhrase.Part.newBuilder().setText(part).build()
+                            )
+                        }
+                    }
 
-                    finalMasterSubcategoryTrainingPhrases.add(processedPhrase)
+                    finalMasterSubcategoryTrainingPhrases.add(
+                        Intent.TrainingPhrase.newBuilder().addAllParts(
+                            phraseParts
+                        ).build()
+                    )
+
+                    phraseParts.clear()
                 }
             }
         }
@@ -391,20 +419,16 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
         val intentClient: IntentsClient = IntentsClient.create(intentClientSettings)
         val parentAgent: AgentName = AgentName.of(AppConstants.projectId)
 
-        val agentTrainingPhrasesMasterCat = createAgentMasterSubcategoriesTrainingPhrases(
-            finalMasterSubcategoryTrainingPhrases
-        )
-
         try {
             val listIntentsRequest = ListIntentsRequest.newBuilder().setIntentView(IntentView.INTENT_VIEW_FULL).setParent(parentAgent.toString()).build()
             val response: ListIntentsResponse = intentClient.listIntentsCallable().call(listIntentsRequest)
 
             response.intentsList.forEach { intent ->
-                if (intent.displayName.equals("choose-product-type")) {
-                    agentTrainingPhrasesMasterCat.addAll(intent.trainingPhrasesList)
+                if (intent.displayName.equals("choose-product-type-and-subtype")) {
+                    finalMasterSubcategoryTrainingPhrases.addAll(intent.trainingPhrasesList)
 
                     val intentBuilder = intentClient.getIntent(intent.name).toBuilder()
-                    intentBuilder.addAllTrainingPhrases(agentTrainingPhrasesMasterCat)
+                    intentBuilder.addAllTrainingPhrases(finalMasterSubcategoryTrainingPhrases)
                     val intent: Intent = intentBuilder.build()
 
                     val fieldMask = FieldMask.newBuilder().addPaths("training_phrases").build()
@@ -516,35 +540,6 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                     parts
                 ).build()
             )
-        }
-
-        return agentTrainingPhrasesProduct
-    }
-
-    private fun createAgentMasterSubcategoriesTrainingPhrases(
-        masterSubcategoryTrainingPhrases: ArrayList<String>
-    ): ArrayList<Intent.TrainingPhrase> {
-        val agentTrainingPhrasesProduct = arrayListOf<Intent.TrainingPhrase>()
-        masterSubcategoryTrainingPhrases.forEach { phrase ->
-            val firstToken = phrase.indexOfFirst { it == '@' }
-            val secondToken = phrase.indexOf("@", firstToken + 1)
-
-            val firstPart = phrase.subSequence(0, firstToken)
-            val secondPart = phrase.subSequence(firstToken, secondToken + 1)
-            firstPart.toString()
-            secondPart.toString()
-
-//            val parts = arrayListOf(
-//                Intent.TrainingPhrase.Part.newBuilder().setText(partBeforeMasterCategory).build(),
-//                Intent.TrainingPhrase.Part.newBuilder().setText(masterCategory).setEntityType("@product-type:product-type").build(),
-//                Intent.TrainingPhrase.Part.newBuilder().setText(partAfterMasterCategory).build(),
-//            )
-//
-//            agentTrainingPhrasesProduct.add(
-//                Intent.TrainingPhrase.newBuilder().addAllParts(
-//                    parts
-//                ).build()
-//            )
         }
 
         return agentTrainingPhrasesProduct

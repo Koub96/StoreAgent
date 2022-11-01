@@ -11,7 +11,7 @@ data class MasterCategoryParameters(
 )
 
 data class MasterCategorySubcategoryParams(
-    val trainingPhrases: ArrayList<String> = arrayListOf()
+    val trainingPhrases: ArrayList<ArrayList<String>> = arrayListOf()
 )
 
 data class ProductParameters(
