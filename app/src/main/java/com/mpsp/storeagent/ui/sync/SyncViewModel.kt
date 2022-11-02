@@ -16,10 +16,14 @@ import com.mpsp.storeagent.models.MasterCategory
 import com.mpsp.storeagent.models.Product
 import com.mpsp.storeagent.models.Subcategory
 import com.mpsp.storeagent.models.SyncParameters
+import com.mpsp.storeagent.ui.uievents.SyncEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-data class SyncState(val title: String = "") : MavericksState
+data class SyncState(
+    val syncResultEvent: SyncEvent = SyncEvent(),
+    val isLoading: Boolean = false,
+) : MavericksState
 
 class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(initialState) {
     val WITH_DELIMITER = "((?<=%1\$s)|(?=%1\$s))"
@@ -33,134 +37,46 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
     }
 
+    private fun setIsLoading(isLoading: Boolean) {
+        setState {
+            copy(isLoading = isLoading)
+        }
+    }
+
+    private fun triggerSyncSuccessEvent(isSuccess: Boolean) {
+        val id = java.util.UUID.randomUUID().toString()
+        setState {
+            copy(
+                syncResultEvent = SyncEvent(
+                    id = id,
+                    isSuccess = isSuccess
+                )
+            )
+        }
+    }
+
     fun initiateSyncProcess() {
         viewModelScope.launch(Dispatchers.IO) {
-
-//            App.getInstance().getDatabase().SubcategoryDao().insertSubcategory(
-//                arrayListOf(
-//                    Subcategory("1", "Playstation 5", "Field1", "Numeric1"),
-//                    Subcategory("2", "Xbox Series X","Field1", "Numeric1"),
-//                    Subcategory("3", "Xiaomi","Field1", "Numeric1"),
-//                    Subcategory("4", "Samsung","Field1", "Numeric1"),
-//                )
-//            )
-//            App.getInstance().getDatabase().MasterCategoryDao().insertMasterCategory(
-//                arrayListOf(
-//                    MasterCategory("1", "Consoles"),
-//                    MasterCategory("2", "SmartPhones"),
-//                )
-//            )
-//            App.getInstance().getDatabase().SubcategoryAliasDao().insertSubcategoryAlias(
-//                arrayListOf(
-//                    SubcategoryAlias(
-//                        "1",
-//                        "1",
-//                        "PS5"
-//                    ),
-//                    SubcategoryAlias(
-//                        "2",
-//                        "2",
-//                        "Xbox X"
-//                    ),
-//                    SubcategoryAlias(
-//                        "3",
-//                        "3",
-//                        "Xiaomi Phone"
-//                    ),
-//                    SubcategoryAlias(
-//                        "4",
-//                        "4",
-//                        "Samsung Phone"
-//                    ),
-//                )
-//            )
-//            App.getInstance().getDatabase().MasterCategoryAliasDao().insertMasterAlias(
-//                arrayListOf(
-//                    MasterCategoryAlias(
-//                        "1",
-//                        "1",
-//                        "Gaming Consoles"
-//                    ),
-//                    MasterCategoryAlias(
-//                        "2",
-//                        "2",
-//                        "Phones"
-//                    )
-//                )
-//            )
-//            App.getInstance().getDatabase().MasterSubcategoryDao().insertMasterSubcategory(
-//                arrayListOf(
-//                    MasterSubcategory("1", "1"),
-//                    MasterSubcategory("1", "2"),
-//                    MasterSubcategory("2", "3"),
-//                    MasterSubcategory("2", "4"),
-//                )
-//            )
-//            App.getInstance().getDatabase().ProductDao().insertProducts(
-//                arrayListOf(
-//                    Product(
-//                        "1",
-//                        "1",
-//                        "1",
-//                        "Playstation 5 No Disc Model"
-//                    ),
-//                    Product(
-//                        "2",
-//                        "1",
-//                        "1",
-//                        "Playstation 5 Disc Model"
-//                    ),
-//                    Product(
-//                        "3",
-//                        "1",
-//                        "2",
-//                        "Xbox Series X Disc Model"
-//                    ),
-//                    Product(
-//                        "4",
-//                        "1",
-//                        "2",
-//                        "Xbox Series X Disc Model"
-//                    ),
-//                    Product(
-//                        "5",
-//                        "2",
-//                        "3",
-//                        "Xiaomi Redmi 2"
-//                    ),
-//                    Product(
-//                        "6",
-//                        "2",
-//                        "4",
-//                        "Samsung Galaxy 3"
-//                    )
-//                )
-//            )
-//            App.getInstance().getDatabase().ProductAliasDao().insertProductAlias(
-//                arrayListOf(
-//                    ProductAlias("1", "1", "PS5"),
-//                    ProductAlias("2", "2", "PS5"),
-//                    ProductAlias("3", "3", "Xbox Series X"),
-//                    ProductAlias("4", "4", "Xbox Series X"),
-//                    ProductAlias("5", "5", "Xiaomi 2"),
-//                    ProductAlias("6", "6", "Samsung 3")
-//                )
-//            )
-
             val valueListener = object: ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
+                    setIsLoading(true)
+
                     val parameters = snapshot.getValue(SyncParameters::class.java)
 
-                    if(parameters == null || parameters.productParams == null || parameters.masterCategoryParams == null)
-                        //TODO Inform the UI
+                    if(parameters == null || parameters.productParams == null || parameters.masterCategoryParams == null) {
+                        setIsLoading(false)
+                        triggerSyncSuccessEvent(false)
                         return
+                    }
 
                     val productTrainingPhrases = parameters.productParams.trainingPhrases
                     val productTrainingPhrasesWithQuantity = parameters.productParams.trainingPhrasesWithQuantity
 
-                    if(productTrainingPhrases.isEmpty() || productTrainingPhrasesWithQuantity.isEmpty())
-                        //TODO Inform the UI
+                    if(productTrainingPhrases.isEmpty() || productTrainingPhrasesWithQuantity.isEmpty()) {
+                        setIsLoading(false)
+                        triggerSyncSuccessEvent(false)
                         return
+                    }
 
                     viewModelScope.launch(Dispatchers.IO) {
                         //Creates product entities
@@ -199,11 +115,15 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                             parameters.masterAndSubcategoryParams.trainingPhrases,
                             masterToSubcategories
                         )
+
+                        setIsLoading(false)
+                        triggerSyncSuccessEvent(true)
                     }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    //TODO Inform the UI
+                    setIsLoading(false)
+                    triggerSyncSuccessEvent(false)
                 }
 
             }
@@ -224,9 +144,11 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
             productTrainingPhrases.forEach { productTrainingPhrase ->
                 val startingPoint = productTrainingPhrase.indexOfFirst { it == '@' }
                 val endingPoint = productTrainingPhrase.indexOfLast { it == '@' }
-                if(startingPoint < 0 || endingPoint < 0)
-                //TODO Inform the UI
+                if(startingPoint < 0 || endingPoint < 0) {
+                    setIsLoading(false)
+                    triggerSyncSuccessEvent(false)
                     return
+                }
 
                 val processedTrainingPhrase = productTrainingPhrase.replaceRange(startingPoint + 1, endingPoint, product.name)
                 finalProductTrainingPhrases.add(processedTrainingPhrase)
@@ -235,18 +157,22 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
             productTrainingPhrasesWithQuantity.forEach { productTrainingPhraseWithQuantity ->
                 val startingPoint = productTrainingPhraseWithQuantity.indexOfFirst { it == '@' }
                 val endingPoint = productTrainingPhraseWithQuantity.indexOfLast { it == '@' }
-                if(startingPoint < 0 || endingPoint < 0)
-                //TODO Inform the UI
+                if(startingPoint < 0 || endingPoint < 0) {
+                    setIsLoading(false)
+                    triggerSyncSuccessEvent(false)
                     return
+                }
 
                 val processedTrainingPhrase = productTrainingPhraseWithQuantity.replaceRange(startingPoint + 1, endingPoint, product.name)
                 finalProductWithQuantityTrainingPhrases.add(processedTrainingPhrase)
             }
         }
 
-        if(finalProductTrainingPhrases.isEmpty() || finalProductWithQuantityTrainingPhrases.isEmpty())
-        //TODO Inform the UI
+        if(finalProductTrainingPhrases.isEmpty() || finalProductWithQuantityTrainingPhrases.isEmpty()) {
+            setIsLoading(false)
+            triggerSyncSuccessEvent(false)
             return
+        }
 
         val intentClientSettings: IntentsSettings = IntentsSettings.newBuilder()
             .setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
@@ -298,8 +224,8 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                 }
             }
         } catch (ex: Exception) {
-            ex.toString()
-            //TODO Inform UI - Update of training phrases failed.
+            setIsLoading(false)
+            triggerSyncSuccessEvent(false)
             return
         }
     }
@@ -314,9 +240,11 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
             masterCategoryTrainingPhrases.forEach { trainingPhrase ->
                 val startingPoint = trainingPhrase.indexOfFirst { it == '@' }
                 val endingPoint = trainingPhrase.indexOfLast { it == '@' }
-                if(startingPoint < 0 || endingPoint < 0)
-                //TODO Inform the UI
+                if(startingPoint < 0 || endingPoint < 0) {
+                    setIsLoading(false)
+                    triggerSyncSuccessEvent(false)
                     return
+                }
 
                 val processedTrainingPhrase = trainingPhrase.replaceRange(startingPoint + 1, endingPoint, masterCategory.title)
                 finalMasterCategoryTrainingPhrases.add(processedTrainingPhrase)
@@ -357,12 +285,15 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                 }
             }
         } catch (exception: Exception) {
+            setIsLoading(false)
+            triggerSyncSuccessEvent(false)
             return
         }
     }
 
     /*
     Updates the training phrases for the choose-product-type-subtype intent
+    In this particular case, the training phrases are already broken into the proper parts.
      */
     private fun createMasterCategorySubcategoryTrainingPhrases(
         masterSubcategoryTrainingPhrases: ArrayList<ArrayList<String>>,
@@ -411,8 +342,11 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
             }
         }
 
-        if(finalMasterSubcategoryTrainingPhrases.isEmpty())
+        if(finalMasterSubcategoryTrainingPhrases.isEmpty()) {
+            setIsLoading(false)
+            triggerSyncSuccessEvent(false)
             return
+        }
 
         val intentClientSettings: IntentsSettings = IntentsSettings.newBuilder()
             .setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
@@ -443,6 +377,8 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                 }
             }
         } catch (exception: Exception) {
+            setIsLoading(false)
+            triggerSyncSuccessEvent(false)
             return
         }
     }
@@ -485,7 +421,8 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
             entityClient.shutdownNow()
         } catch (ex: Exception) {
-            //TODO Inform the UI
+            setIsLoading(false)
+            triggerSyncSuccessEvent(false)
         }
     }
 
@@ -631,7 +568,8 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
             entityClient.shutdownNow()
         } catch (exception: Exception) {
-            //TODO Inform the UI
+            setIsLoading(false)
+            triggerSyncSuccessEvent(false)
             return
         }
     }
@@ -668,8 +606,120 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
             entityClient.shutdownNow()
         } catch (exception: Exception) {
-            //TODO Inform the UI
+            setIsLoading(false)
+            triggerSyncSuccessEvent(false)
             return
         }
     }
 }
+
+//            App.getInstance().getDatabase().SubcategoryDao().insertSubcategory(
+//                arrayListOf(
+//                    Subcategory("1", "Playstation 5", "Field1", "Numeric1"),
+//                    Subcategory("2", "Xbox Series X","Field1", "Numeric1"),
+//                    Subcategory("3", "Xiaomi","Field1", "Numeric1"),
+//                    Subcategory("4", "Samsung","Field1", "Numeric1"),
+//                )
+//            )
+//            App.getInstance().getDatabase().MasterCategoryDao().insertMasterCategory(
+//                arrayListOf(
+//                    MasterCategory("1", "Consoles"),
+//                    MasterCategory("2", "SmartPhones"),
+//                )
+//            )
+//            App.getInstance().getDatabase().SubcategoryAliasDao().insertSubcategoryAlias(
+//                arrayListOf(
+//                    SubcategoryAlias(
+//                        "1",
+//                        "1",
+//                        "PS5"
+//                    ),
+//                    SubcategoryAlias(
+//                        "2",
+//                        "2",
+//                        "Xbox X"
+//                    ),
+//                    SubcategoryAlias(
+//                        "3",
+//                        "3",
+//                        "Xiaomi Phone"
+//                    ),
+//                    SubcategoryAlias(
+//                        "4",
+//                        "4",
+//                        "Samsung Phone"
+//                    ),
+//                )
+//            )
+//            App.getInstance().getDatabase().MasterCategoryAliasDao().insertMasterAlias(
+//                arrayListOf(
+//                    MasterCategoryAlias(
+//                        "1",
+//                        "1",
+//                        "Gaming Consoles"
+//                    ),
+//                    MasterCategoryAlias(
+//                        "2",
+//                        "2",
+//                        "Phones"
+//                    )
+//                )
+//            )
+//            App.getInstance().getDatabase().MasterSubcategoryDao().insertMasterSubcategory(
+//                arrayListOf(
+//                    MasterSubcategory("1", "1"),
+//                    MasterSubcategory("1", "2"),
+//                    MasterSubcategory("2", "3"),
+//                    MasterSubcategory("2", "4"),
+//                )
+//            )
+//            App.getInstance().getDatabase().ProductDao().insertProducts(
+//                arrayListOf(
+//                    Product(
+//                        "1",
+//                        "1",
+//                        "1",
+//                        "Playstation 5 No Disc Model"
+//                    ),
+//                    Product(
+//                        "2",
+//                        "1",
+//                        "1",
+//                        "Playstation 5 Disc Model"
+//                    ),
+//                    Product(
+//                        "3",
+//                        "1",
+//                        "2",
+//                        "Xbox Series X Disc Model"
+//                    ),
+//                    Product(
+//                        "4",
+//                        "1",
+//                        "2",
+//                        "Xbox Series X Disc Model"
+//                    ),
+//                    Product(
+//                        "5",
+//                        "2",
+//                        "3",
+//                        "Xiaomi Redmi 2"
+//                    ),
+//                    Product(
+//                        "6",
+//                        "2",
+//                        "4",
+//                        "Samsung Galaxy 3"
+//                    )
+//                )
+//            )
+//            App.getInstance().getDatabase().ProductAliasDao().insertProductAlias(
+//                arrayListOf(
+//                    ProductAlias("1", "1", "PS5"),
+//                    ProductAlias("2", "2", "PS5"),
+//                    ProductAlias("3", "3", "Xbox Series X"),
+//                    ProductAlias("4", "4", "Xbox Series X"),
+//                    ProductAlias("5", "5", "Xiaomi 2"),
+//                    ProductAlias("6", "6", "Samsung 3")
+//                )
+//            )

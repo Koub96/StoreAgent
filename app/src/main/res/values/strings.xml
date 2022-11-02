@@ -2,4 +2,8 @@
     <string name="app_name">StoreAgent</string>
     <string name="syncDescription">Synchronize your Agent and get started!</string>
     <string name="syncButtonDescription">Synchronize</string>
+    <string name="sync">Synchronization</string>
+    <string name="syncInProgress">Synchronizing. Please Wait.</string>
+    <string name="syncSuccess">Synchronization was successful.</string>
+    <string name="syncFail">Synchronization failed. Please try again.</string>
 </resources>

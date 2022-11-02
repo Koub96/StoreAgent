@@ -2,4 +2,8 @@
 <resources>
     <string name="syncDescription">Συγχρονίστε τον Agent σας και ξεκινήστε!</string>
     <string name="syncButtonDescription">Συγχρονισμός</string>
+    <string name="sync">Συγχρονισμός</string>
+    <string name="syncInProgress">Συγχρονισμός. Παρακαλώ Περιμένετε.</string>
+    <string name="syncSuccess">Ο συγχρονισμός ήταν επιτυχής.</string>
+    <string name="syncFail">Ο συγχρονισμός απέτυχε. Παρακαλούμε προσπαθήστε ξανά.</string>
 </resources>
