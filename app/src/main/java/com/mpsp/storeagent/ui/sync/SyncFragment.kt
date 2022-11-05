@@ -1,5 +1,6 @@
 package com.mpsp.storeagent.ui.sync
 
+import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -29,10 +30,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.airbnb.mvrx.MavericksView
 import com.airbnb.mvrx.compose.collectAsState
 import com.airbnb.mvrx.compose.mavericksViewModel
 import com.airbnb.mvrx.fragmentViewModel
+import com.mpsp.storeagent.AppConstants
 import com.mpsp.storeagent.R
 
 
@@ -57,6 +60,13 @@ class SyncFragment : Fragment(), MavericksView {
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        if(getInitializationSuccessful())
+            findNavController().navigate(R.id.sync_to_dashboard)
+    }
+
     private fun setupViewModelSubscriptions() {
         viewModel.onEach(SyncState::syncResultEvent ,uniqueOnly()) { event ->
             if(event.id.isNullOrEmpty())
@@ -72,7 +82,12 @@ class SyncFragment : Fragment(), MavericksView {
             android.app.AlertDialog.Builder(requireContext())
                 .setTitle(getString(R.string.sync))
                 .setMessage(message)
-                .setPositiveButton(android.R.string.yes) { dialog, which ->
+                .setPositiveButton(android.R.string.yes) { dialog, which -> }
+                .setOnDismissListener {
+                    setInitializationSuccessful(event.isSuccess)
+                    if(event.isSuccess) {
+                        findNavController().navigate(R.id.sync_to_dashboard)
+                    }
                 }
                 .setIcon(android.R.drawable.ic_dialog_info)
                 .show()
@@ -90,7 +105,10 @@ class SyncFragment : Fragment(), MavericksView {
             Column(modifier = Modifier.wrapContentSize(Alignment.Center)) {
                 Row(modifier = Modifier.wrapContentSize()) {
                     Spacer(modifier = Modifier.width(4.dp))
-                    Image(imageVector = ImageVector.vectorResource(id = R.drawable.agent_face), contentDescription = null)
+                    Image(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.agent_face),
+                        contentDescription = null
+                    )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = getString(R.string.syncDescription),
@@ -187,6 +205,23 @@ class SyncFragment : Fragment(), MavericksView {
                 }
             }
         }
+    }
+
+    private fun setInitializationSuccessful(success: Boolean) {
+        val sharedPreference =  requireActivity().getPreferences(
+            Context.MODE_PRIVATE
+        )
+        val editor = sharedPreference.edit()
+        editor.putBoolean(AppConstants.firstInitSuccessKey, success)
+        editor.apply()
+    }
+
+    private fun getInitializationSuccessful(): Boolean {
+        val sharedPreference =  requireActivity().getPreferences(
+            Context.MODE_PRIVATE
+        )
+
+        return sharedPreference.getBoolean(AppConstants.firstInitSuccessKey, false)
     }
 
     override fun invalidate() { }

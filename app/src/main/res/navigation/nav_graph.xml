@@ -14,5 +14,14 @@
         android:id="@+id/syncFragment"
         android:name="com.mpsp.storeagent.ui.sync.SyncFragment"
         android:label="fragment_sync"
-        tools:layout="@layout/fragment_sync" />
+        tools:layout="@layout/fragment_sync" >
+        <action
+            android:id="@+id/sync_to_dashboard"
+            app:destination="@id/dashboardFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.mpsp.storeagent.ui.dashboard.DashboardFragment"
+        android:label="fragment_dashboard"
+        tools:layout="@layout/fragment_dashboard" />
 </navigation>
