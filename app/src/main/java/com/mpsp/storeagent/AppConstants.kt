@@ -10,5 +10,6 @@ object AppConstants {
     var agentCredentials: GoogleCredentials? = null
     var projectId: String = ""
     var sessionSettings: SessionsSettings? = null
-    val firstInitSuccessKey = "FIRST_INIT_SUCCESS"
+    const val firstInitSuccessKey = "FIRST_INIT_SUCCESS"
+    const val agentLanguageCode = "en-US"
 }

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="syncDescription">Συγχρονίστε τον Agent σας και ξεκινήστε!</string>
+    <string name="mandatoryPermissionTitle">Υποχρεωτικό δικαίωμα μικροφώνου</string>
+    <string name="mandatoryPermissionMessage">Δεν επιτρέψατε στην εφαρμογή να έχει δικαιώματα μικροφώνου. Δεν μπορείτε να συνεχίσετε.</string>
     <string name="syncButtonDescription">Συγχρονισμός</string>
     <string name="sync">Συγχρονισμός</string>
     <string name="syncInProgress">Συγχρονισμός. Παρακαλώ Περιμένετε.</string>

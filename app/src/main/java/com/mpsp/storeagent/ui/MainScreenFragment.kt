@@ -80,6 +80,7 @@ class MainScreenFragment : Fragment() {
             val sessionsSettings: SessionsSettings = settingsBuilder.setCredentialsProvider(
                 FixedCredentialsProvider.create(credentials)
             ).build()
+
             sessionsClient = SessionsClient.create(sessionsSettings)
             sessionName = SessionName.of(projectId, uuid)
 
@@ -102,9 +103,7 @@ class MainScreenFragment : Fragment() {
                         .setQueryInput(input)
                         .build()
                     val result = sessionsClient?.detectIntent(detectIntentRequest)
-                    if (result != null) {
-                        result.toString()
-                    }
+                    result?.toString()
                 }
             }
         } catch (e: Exception) {
