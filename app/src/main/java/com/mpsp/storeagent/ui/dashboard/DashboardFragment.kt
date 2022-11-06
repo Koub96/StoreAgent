@@ -77,26 +77,30 @@ class DashboardFragment : Fragment(), RecognitionListener {
             requireContext().applicationInfo.packageName
         )
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.ENGLISH);
-        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2)
+        intent.putExtra(
+            RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,
+            5000L
+        )
         val speechRecognizer = SpeechRecognizer.createSpeechRecognizer(requireContext())
         speechRecognizer.setRecognitionListener(this)
         speechRecognizer.startListening(intent)
     }
 
     override fun onReadyForSpeech(params: Bundle?) {
-        TODO("Not yet implemented")
+
     }
 
     override fun onBeginningOfSpeech() {
-        TODO("Not yet implemented")
+
     }
 
     override fun onRmsChanged(rmsdB: Float) {
-        TODO("Not yet implemented")
+
     }
 
     override fun onBufferReceived(buffer: ByteArray?) {
-        TODO("Not yet implemented")
+
     }
 
     override fun onEndOfSpeech() {
@@ -109,13 +113,15 @@ class DashboardFragment : Fragment(), RecognitionListener {
 
     override fun onResults(results: Bundle?) {
         results.toString()
+        val res = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+        res.toString()
     }
 
     override fun onPartialResults(partialResults: Bundle?) {
-        TODO("Not yet implemented")
+
     }
 
     override fun onEvent(eventType: Int, params: Bundle?) {
-        TODO("Not yet implemented")
+
     }
 }
