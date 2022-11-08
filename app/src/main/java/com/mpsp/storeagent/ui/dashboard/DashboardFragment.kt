@@ -74,7 +74,7 @@ class DashboardFragment : Fragment(), MavericksView, RecognitionListener {
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(it),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.TopStart
                 ) {
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(minSize = 128.dp),
