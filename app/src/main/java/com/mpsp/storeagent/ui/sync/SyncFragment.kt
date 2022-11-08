@@ -1,7 +1,6 @@
 package com.mpsp.storeagent.ui.sync
 
 import android.content.Context
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -40,7 +39,6 @@ import com.mpsp.storeagent.R
 
 
 class SyncFragment : Fragment(), MavericksView {
-
     private val viewModel: SyncViewModel by fragmentViewModel(SyncViewModel::class)
 
     override fun onCreate(savedInstanceState: Bundle?) {

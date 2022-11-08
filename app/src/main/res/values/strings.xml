@@ -8,4 +8,5 @@
     <string name="sync">Synchronization</string>
     <string name="syncInProgress">Synchronizing. Please Wait.</string>
     <string name="syncSuccess">Synchronization was successful.</string>
+    <string name="agentSpeechMessage">Please Speak.</string>
 </resources>

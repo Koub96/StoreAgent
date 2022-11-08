@@ -8,4 +8,5 @@
     <string name="syncInProgress">Συγχρονισμός. Παρακαλώ Περιμένετε.</string>
     <string name="syncSuccess">Ο συγχρονισμός ήταν επιτυχής.</string>
     <string name="syncFail">Ο συγχρονισμός απέτυχε. Παρακαλούμε προσπαθήστε ξανά.</string>
+    <string name="agentSpeechMessage">Παρακαλώ μιλήστε.</string>
 </resources>

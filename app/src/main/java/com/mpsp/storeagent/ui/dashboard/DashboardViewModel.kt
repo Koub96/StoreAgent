@@ -10,12 +10,22 @@ import kotlinx.coroutines.launch
 import java.util.*
 
 data class DashboardState(
-    val id: String = ""
+    val showSpeechDialog: Boolean = false
 ) : MavericksState
 
 class DashboardViewModel(initialState: DashboardState) : MavericksViewModel<DashboardState>(initialState)  {
-    init {
+    init {}
 
+    fun showSpeechDialog() {
+        setState {
+            copy(showSpeechDialog = true)
+        }
+    }
+
+    fun hideSpeechDialog() {
+        setState {
+            copy(showSpeechDialog = false)
+        }
     }
 
     fun processSpeech(speech: String) {
