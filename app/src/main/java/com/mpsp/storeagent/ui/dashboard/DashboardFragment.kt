@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.speech.tts.TextToSpeech
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,9 +33,17 @@ import com.mpsp.storeagent.R
 import java.util.*
 
 
-class DashboardFragment : Fragment(), MavericksView, RecognitionListener {
+class DashboardFragment : Fragment(), MavericksView, RecognitionListener, TextToSpeech.OnInitListener {
     private val viewModel: DashboardViewModel by fragmentViewModel(DashboardViewModel::class)
     private var speechRecognizer: SpeechRecognizer? = null
+    private var textToSpeech: TextToSpeech? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        setupTextToSpeech()
+        setupViewModelSubscriptions()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,6 +59,20 @@ class DashboardFragment : Fragment(), MavericksView, RecognitionListener {
     override fun onDestroy() {
         super.onDestroy()
         speechRecognizer?.destroy()
+    }
+
+    private fun setupViewModelSubscriptions() {
+        viewModel.onEach(DashboardState::agentResponseEvent ,uniqueOnly()) { event ->
+            if(textToSpeech == null)
+                return@onEach
+
+            textToSpeech?.speak(event.response, TextToSpeech.QUEUE_ADD, null)
+        }
+    }
+
+    private fun setupTextToSpeech() {
+        textToSpeech = TextToSpeech(requireContext(), this)
+        textToSpeech?.language = Locale.US
     }
 
     @Composable
@@ -178,7 +201,8 @@ class DashboardFragment : Fragment(), MavericksView, RecognitionListener {
 
     override fun onResults(results: Bundle?) {
         val res = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-        res.toString()
+        if(!res.isNullOrEmpty())
+            viewModel.processSpeech(res[0])
     }
 
     override fun onPartialResults(partialResults: Bundle?) {}
@@ -186,4 +210,8 @@ class DashboardFragment : Fragment(), MavericksView, RecognitionListener {
     override fun onEvent(eventType: Int, params: Bundle?) {}
 
     override fun invalidate() {}
+
+    override fun onInit(status: Int) {
+        status.toString()
+    }
 }

@@ -314,14 +314,16 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                             phraseParts.add(
                                 Intent.TrainingPhrase.Part.newBuilder()
                                     .setText(part.replace("@mastercategory@", masterCategory.title))
-                                    .setEntityType("@product-type:product-type")
+                                    .setEntityType("@product-type")
+                                    .setAlias("product-type")
                                     .build()
                             )
                         } else if(part.contains("@subcategory@")) {
                             phraseParts.add(
                                 Intent.TrainingPhrase.Part.newBuilder()
                                     .setText(part.replace("@subcategory@", subcategory.title))
-                                    .setEntityType("@product-subtype:product-subtype")
+                                    .setEntityType("@product-subtype")
+                                    .setAlias("product-subtype")
                                     .build()
                             )
                         } else {
@@ -468,7 +470,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
             val parts = arrayListOf(
                 Intent.TrainingPhrase.Part.newBuilder().setText(partBeforeMasterCategory).build(),
-                Intent.TrainingPhrase.Part.newBuilder().setText(masterCategory).setEntityType("@product-type:product-type").build(),
+                Intent.TrainingPhrase.Part.newBuilder().setText(masterCategory).setEntityType("@product-type").setAlias("product-type").build(),
                 Intent.TrainingPhrase.Part.newBuilder().setText(partAfterMasterCategory).build(),
             )
 
