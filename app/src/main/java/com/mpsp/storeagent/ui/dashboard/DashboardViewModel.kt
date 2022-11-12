@@ -5,6 +5,7 @@ import com.airbnb.mvrx.MavericksViewModel
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.cloud.dialogflow.v2.*
 import com.mpsp.storeagent.AppConstants
+import com.mpsp.storeagent.agent.session.AgentSession
 import com.mpsp.storeagent.ui.uievents.AgentResponseEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,9 +18,6 @@ data class DashboardState(
 
 class DashboardViewModel(initialState: DashboardState) : MavericksViewModel<DashboardState>(initialState)  {
     init {}
-
-    private var sessionClient: SessionsClient? = null
-    private var sessionName: SessionName? = null
 
     fun showSpeechDialog() {
         setState {
@@ -35,31 +33,18 @@ class DashboardViewModel(initialState: DashboardState) : MavericksViewModel<Dash
 
     fun processSpeech(speech: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            //TODO Session Client and Session Name must live through the whole process.
-            if(sessionClient == null) {
-                val uuid = UUID.randomUUID().toString()
-
-                val settingsBuilder: SessionsSettings.Builder = SessionsSettings.newBuilder()
-                val sessionsSettings: SessionsSettings = settingsBuilder.setCredentialsProvider(
-                    FixedCredentialsProvider.create(AppConstants.agentCredentials)
-                ).build()
-
-                sessionClient = SessionsClient.create(sessionsSettings)
-                sessionName = SessionName.of(AppConstants.projectId, uuid)
-            }
-
             val input = QueryInput.newBuilder()
                 .setText(
                     TextInput.newBuilder().setText(speech).setLanguageCode(AppConstants.agentLanguageCode)
                 ).build()
 
             val detectIntentRequest = DetectIntentRequest.newBuilder()
-                .setSession(sessionName.toString())
+                .setSession(AgentSession.getSessionName()?.toString())
                 .setQueryInput(input)
                 .build()
 
             try {
-                val result = sessionClient?.detectIntent(detectIntentRequest)
+                val result = AgentSession.getSessionClient()?.detectIntent(detectIntentRequest)
                 if(result == null)
                     return@launch
 

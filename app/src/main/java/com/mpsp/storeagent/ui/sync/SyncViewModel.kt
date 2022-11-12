@@ -43,7 +43,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
         }
     }
 
-    private fun triggerSyncSuccessEvent(isSuccess: Boolean) {
+    private fun triggerSyncFinishedEvent(isSuccess: Boolean) {
         val id = java.util.UUID.randomUUID().toString()
         setState {
             copy(
@@ -65,7 +65,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
                     if(parameters == null || parameters.productParams == null || parameters.masterCategoryParams == null) {
                         setIsLoading(false)
-                        triggerSyncSuccessEvent(false)
+                        triggerSyncFinishedEvent(false)
                         return
                     }
 
@@ -74,7 +74,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
                     if(productTrainingPhrases.isEmpty() || productTrainingPhrasesWithQuantity.isEmpty()) {
                         setIsLoading(false)
-                        triggerSyncSuccessEvent(false)
+                        triggerSyncFinishedEvent(false)
                         return
                     }
 
@@ -117,13 +117,13 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                         )
 
                         setIsLoading(false)
-                        triggerSyncSuccessEvent(true)
+                        triggerSyncFinishedEvent(true)
                     }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
                     setIsLoading(false)
-                    triggerSyncSuccessEvent(false)
+                    triggerSyncFinishedEvent(false)
                 }
 
             }
@@ -146,7 +146,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                 val endingPoint = productTrainingPhrase.indexOfLast { it == '@' }
                 if(startingPoint < 0 || endingPoint < 0) {
                     setIsLoading(false)
-                    triggerSyncSuccessEvent(false)
+                    triggerSyncFinishedEvent(false)
                     return
                 }
 
@@ -159,7 +159,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                 val endingPoint = productTrainingPhraseWithQuantity.indexOfLast { it == '@' }
                 if(startingPoint < 0 || endingPoint < 0) {
                     setIsLoading(false)
-                    triggerSyncSuccessEvent(false)
+                    triggerSyncFinishedEvent(false)
                     return
                 }
 
@@ -170,7 +170,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
         if(finalProductTrainingPhrases.isEmpty() || finalProductWithQuantityTrainingPhrases.isEmpty()) {
             setIsLoading(false)
-            triggerSyncSuccessEvent(false)
+            triggerSyncFinishedEvent(false)
             return
         }
 
@@ -225,7 +225,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
             }
         } catch (ex: Exception) {
             setIsLoading(false)
-            triggerSyncSuccessEvent(false)
+            triggerSyncFinishedEvent(false)
             return
         }
     }
@@ -242,7 +242,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                 val endingPoint = trainingPhrase.indexOfLast { it == '@' }
                 if(startingPoint < 0 || endingPoint < 0) {
                     setIsLoading(false)
-                    triggerSyncSuccessEvent(false)
+                    triggerSyncFinishedEvent(false)
                     return
                 }
 
@@ -286,7 +286,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
             }
         } catch (exception: Exception) {
             setIsLoading(false)
-            triggerSyncSuccessEvent(false)
+            triggerSyncFinishedEvent(false)
             return
         }
     }
@@ -346,7 +346,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
         if(finalMasterSubcategoryTrainingPhrases.isEmpty()) {
             setIsLoading(false)
-            triggerSyncSuccessEvent(false)
+            triggerSyncFinishedEvent(false)
             return
         }
 
@@ -380,7 +380,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
             }
         } catch (exception: Exception) {
             setIsLoading(false)
-            triggerSyncSuccessEvent(false)
+            triggerSyncFinishedEvent(false)
             return
         }
     }
@@ -424,7 +424,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
             entityClient.shutdownNow()
         } catch (ex: Exception) {
             setIsLoading(false)
-            triggerSyncSuccessEvent(false)
+            triggerSyncFinishedEvent(false)
         }
     }
 
@@ -571,7 +571,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
             entityClient.shutdownNow()
         } catch (exception: Exception) {
             setIsLoading(false)
-            triggerSyncSuccessEvent(false)
+            triggerSyncFinishedEvent(false)
             return
         }
     }
@@ -609,7 +609,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
             entityClient.shutdownNow()
         } catch (exception: Exception) {
             setIsLoading(false)
-            triggerSyncSuccessEvent(false)
+            triggerSyncFinishedEvent(false)
             return
         }
     }
