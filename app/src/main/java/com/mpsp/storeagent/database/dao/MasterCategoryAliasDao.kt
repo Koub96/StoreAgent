@@ -14,4 +14,7 @@ interface MasterCategoryAliasDao {
 
     @Query("SELECT * FROM MasterCategoryAlias WHERE MasterCategoryAlias.masterCategoryID = :masterCategoryID")
     fun getMasterCategoryAlias(masterCategoryID: String): List<MasterCategoryAlias>
+
+    @Query("SELECT masterCategoryID FROM MasterCategoryAlias WHERE MasterCategoryAlias.alias = :masterCategoryAlias")
+    suspend fun getMasterCategoryIdByAlias(masterCategoryAlias: String): String?
 }

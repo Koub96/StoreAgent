@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.airbnb.mvrx.MavericksView
 import com.airbnb.mvrx.compose.collectAsState
 import com.airbnb.mvrx.compose.mavericksViewModel
@@ -67,6 +68,15 @@ class DashboardFragment : Fragment(), MavericksView, RecognitionListener, TextTo
                 return@onEach
 
             textToSpeech?.speak(event.response, TextToSpeech.QUEUE_ADD, null)
+        }
+        viewModel.onEach(DashboardState::actionNavigationEvent ,uniqueOnly()) { event ->
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("DEBUG")
+                .setMessage("Will do naivgation with id " + event.entityID + " and action " + event.action.name)
+                .setPositiveButton(android.R.string.yes) { dialog, which -> }
+                .setOnDismissListener {
+                }
+                .show()
         }
     }
 
