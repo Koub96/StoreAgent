@@ -39,6 +39,7 @@ import com.airbnb.mvrx.compose.collectAsState
 import com.airbnb.mvrx.compose.mavericksViewModel
 import com.airbnb.mvrx.fragmentViewModel
 import com.mpsp.storeagent.R
+import com.mpsp.storeagent.agent.enums.AgentActionEnum
 import java.util.*
 
 
@@ -85,6 +86,11 @@ class DashboardFragment : Fragment(), MavericksView, RecognitionListener, TextTo
                 .setOnDismissListener {
                 }
                 .show()
+
+            if (event.entityID.isNullOrEmpty())
+                return@onEach
+            if(event.action == AgentActionEnum.Unspecified)
+                return@onEach
         }
     }
 
