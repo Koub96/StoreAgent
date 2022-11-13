@@ -70,8 +70,6 @@ class DashboardViewModel(initialState: DashboardState) : MavericksViewModel<Dash
                 if(result == null)
                     return@launch
 
-                //result.queryResult.action // Determine Action -> GetProductType
-                //result.queryResult.parameters.fieldsMap //"product-type" -> "Consoles"
                 val agentHandler = AgentActionHandler()
                 val entityID = agentHandler.determineEntityId(
                     result.queryResult.action,
