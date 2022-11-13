@@ -9,18 +9,26 @@ import android.speech.tts.TextToSpeech
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Blue
+import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -109,18 +117,54 @@ class DashboardFragment : Fragment(), MavericksView, RecognitionListener, TextTo
                         .padding(it),
                     contentAlignment = Alignment.TopStart
                 ) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = 128.dp),
-                    ) {
-                        items(5) { index ->
-                            Text(text = "Item: $index")
-                        }
-                    }
-
+                    DashboardGridList()
                     CreateSpeechDialog()
                 }
             }
         )
+    }
+
+    @Composable
+    private fun DashboardGridList() {
+        val viewModel: DashboardViewModel = mavericksViewModel()
+        val masterCategories = viewModel.collectAsState(DashboardState::masterCategories)
+
+        val horizontalGradientBrush = Brush.verticalGradient(
+            colors = listOf(
+                Blue,
+                White
+            ),
+            startY = 278.0f,
+            endY = 0.0f
+        )
+
+        LazyVerticalGrid(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            columns = GridCells.Adaptive(127.dp)
+        ) {
+            items(masterCategories.value) { item ->
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .padding(top = 16.dp, start = 8.dp, end = 8.dp)
+                        .width(80.dp)
+                        .height(90.dp)
+                ) {
+                    Box(
+                        modifier = Modifier.background(brush = horizontalGradientBrush),
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(text = item.title, textAlign = TextAlign.Center)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @Composable
