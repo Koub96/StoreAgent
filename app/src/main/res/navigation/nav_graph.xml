@@ -23,5 +23,14 @@
         android:id="@+id/dashboardFragment"
         android:name="com.mpsp.storeagent.ui.dashboard.DashboardFragment"
         android:label="fragment_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
+        tools:layout="@layout/fragment_dashboard" >
+        <action
+            android:id="@+id/dashboard_to_master_category"
+            app:destination="@id/masterCategoryFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/masterCategoryFragment"
+        android:name="com.mpsp.storeagent.ui.mastercategory.MasterCategoryFragment"
+        android:label="fragment_master_category"
+        tools:layout="@layout/fragment_master_category" />
 </navigation>

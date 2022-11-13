@@ -79,18 +79,21 @@ class DashboardFragment : Fragment(), MavericksView, RecognitionListener, TextTo
             textToSpeech?.speak(event.response, TextToSpeech.QUEUE_ADD, null)
         }
         viewModel.onEach(DashboardState::actionNavigationEvent ,uniqueOnly()) { event ->
-            android.app.AlertDialog.Builder(requireContext())
-                .setTitle("DEBUG")
-                .setMessage("Will do naivgation with id " + event.entityID + " and action " + event.action.name)
-                .setPositiveButton(android.R.string.yes) { dialog, which -> }
-                .setOnDismissListener {
-                }
-                .show()
+//            android.app.AlertDialog.Builder(requireContext())
+//                .setTitle("DEBUG")
+//                .setMessage("Will do naivgation with id " + event.entityID + " and action " + event.action.name)
+//                .setPositiveButton(android.R.string.yes) { dialog, which -> }
+//                .setOnDismissListener {
+//                }
+//                .show()
 
-            if (event.entityID.isNullOrEmpty())
+            if (event.entityID.isEmpty())
                 return@onEach
             if(event.action == AgentActionEnum.Unspecified)
                 return@onEach
+
+            if(event.action == AgentActionEnum.GetProductType)
+                findNavController().navigate(R.id.dashboard_to_master_category)
         }
     }
 
