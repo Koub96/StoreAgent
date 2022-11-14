@@ -32,14 +32,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.airbnb.mvrx.Mavericks
 import com.airbnb.mvrx.MavericksView
 import com.airbnb.mvrx.compose.collectAsState
 import com.airbnb.mvrx.compose.mavericksViewModel
 import com.airbnb.mvrx.fragmentViewModel
 import com.mpsp.storeagent.R
 import com.mpsp.storeagent.agent.enums.AgentActionEnum
+import com.mpsp.storeagent.ui.subcategories.SubcategoriesFragmentArgs
 import java.util.*
 
 
@@ -93,7 +96,10 @@ class DashboardFragment : Fragment(), MavericksView, RecognitionListener, TextTo
                 return@onEach
 
             if(event.action == AgentActionEnum.GetProductType)
-                findNavController().navigate(R.id.dashboard_to_master_category)
+                findNavController().navigate(
+                    R.id.dashboard_to_master_category,
+                    bundleOf(Mavericks.KEY_ARG to SubcategoriesFragmentArgs(event.entityID))
+                )
         }
     }
 

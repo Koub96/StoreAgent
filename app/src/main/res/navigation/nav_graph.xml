@@ -30,7 +30,7 @@
     </fragment>
     <fragment
         android:id="@+id/masterCategoryFragment"
-        android:name="com.mpsp.storeagent.ui.mastercategory.MasterCategoryFragment"
+        android:name="com.mpsp.storeagent.ui.subcategories.SubcategoriesFragment"
         android:label="fragment_master_category"
         tools:layout="@layout/fragment_master_category" />
 </navigation>
