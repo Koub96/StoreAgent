@@ -42,6 +42,7 @@ import com.airbnb.mvrx.compose.mavericksViewModel
 import com.airbnb.mvrx.fragmentViewModel
 import com.mpsp.storeagent.R
 import com.mpsp.storeagent.agent.enums.AgentActionEnum
+import com.mpsp.storeagent.models.MasterCategory
 import com.mpsp.storeagent.ui.subcategories.SubcategoriesFragmentArgs
 import java.util.*
 
@@ -90,16 +91,22 @@ class DashboardFragment : Fragment(), MavericksView, RecognitionListener, TextTo
 //                }
 //                .show()
 
-            if (event.entityID.isEmpty())
-                return@onEach
-            if(event.action == AgentActionEnum.Unspecified)
+            if(event.action.navigationEvent == AgentActionEnum.Unspecified)
                 return@onEach
 
-            if(event.action == AgentActionEnum.GetProductType)
+            if(event.action.navigationEvent == AgentActionEnum.GetProductType) {
+                if(event.action.entityMapping[MasterCategory::class.simpleName].isNullOrEmpty())
+                    return@onEach
+
                 findNavController().navigate(
                     R.id.dashboard_to_master_category,
-                    bundleOf(Mavericks.KEY_ARG to SubcategoriesFragmentArgs(event.entityID))
+                    bundleOf(
+                        Mavericks.KEY_ARG to SubcategoriesFragmentArgs(
+                            event.action.entityMapping[MasterCategory::class.simpleName]!!
+                        )
+                    )
                 )
+            }
         }
     }
 

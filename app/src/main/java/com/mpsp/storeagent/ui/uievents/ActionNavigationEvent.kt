@@ -1,8 +1,7 @@
 package com.mpsp.storeagent.ui.uievents
 
-import com.mpsp.storeagent.agent.enums.AgentActionEnum
+import com.mpsp.storeagent.models.agent.AgentAction
 
 data class ActionNavigationEvent(
-    val action: AgentActionEnum = AgentActionEnum.Unspecified,
-    val entityID: String = ""
+    val action: AgentAction = AgentAction()
 )

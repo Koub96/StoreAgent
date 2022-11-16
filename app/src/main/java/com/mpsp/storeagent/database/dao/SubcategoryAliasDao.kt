@@ -15,4 +15,7 @@ interface SubcategoryAliasDao {
 
     @Query("SELECT * FROM SubcategoryAlias WHERE SubcategoryAlias.subcategoryID = :subcategoryID")
     fun getSubcategoryAlias(subcategoryID: String): List<SubcategoryAlias>
+
+    @Query("SELECT subcategoryID FROM SubcategoryAlias WHERE SubcategoryAlias.alias = :subcategoryAlias")
+    suspend fun getSubcategoryIdByAlias(subcategoryAlias: String): String?
 }

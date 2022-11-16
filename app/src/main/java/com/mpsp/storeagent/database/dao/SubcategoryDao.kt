@@ -16,4 +16,7 @@ interface SubcategoryDao {
 
     @Query("SELECT * from Subcategory WHERE Subcategory.id = :subcategoryID")
     suspend fun getSubcategory(subcategoryID: String): Subcategory
+
+    @Query("SELECT id FROM Subcategory WHERE Subcategory.title = :subcategoryTitle")
+    suspend fun getSubcategoryIdByTitle(subcategoryTitle: String): String?
 }

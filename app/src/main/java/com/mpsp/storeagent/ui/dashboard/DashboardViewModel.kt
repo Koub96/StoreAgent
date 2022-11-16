@@ -70,12 +70,10 @@ class DashboardViewModel(initialState: DashboardState) : MavericksViewModel<Dash
                 if(result == null)
                     return@launch
 
-                val agentHandler = AgentActionHandler()
-                val entityID = agentHandler.determineEntityId(
+                val action = AgentActionHandler().determineAction(
                     result.queryResult.action,
                     result.queryResult.parameters.fieldsMap
                 )
-                val action = agentHandler.determineAction(result.queryResult.action)
 
                 val agentResponseEvent = AgentResponseEvent(response = result.queryResult.fulfillmentText)
                 setState {
@@ -84,10 +82,7 @@ class DashboardViewModel(initialState: DashboardState) : MavericksViewModel<Dash
                     )
                 }
 
-                val navigateByActionEvent = ActionNavigationEvent(
-                    action,
-                    entityID
-                )
+                val navigateByActionEvent = ActionNavigationEvent(action)
                 setState {
                     copy(
                         actionNavigationEvent = navigateByActionEvent
