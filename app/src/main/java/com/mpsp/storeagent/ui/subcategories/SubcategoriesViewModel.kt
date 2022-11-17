@@ -26,6 +26,8 @@ data class SubcategoriesFragmentArgs(
 data class SubcategoriesState(
     @PersistState val masterCategoryId: String = "",
     val subcategories: List<Subcategory> = emptyList(),
+    val actionNavigationEvent: ActionNavigationEvent = ActionNavigationEvent(),
+    val agentResponseEvent: AgentResponseEvent = AgentResponseEvent(),
     val showSpeechDialog: Boolean = false
 ) : MavericksState {
     constructor(args: SubcategoriesFragmentArgs) : this(args.masterCategoryId)
@@ -85,30 +87,24 @@ class SubcategoriesViewModel(initialState: SubcategoriesState) : MavericksViewMo
                 if(result == null)
                     return@launch
 
-                val agentHandler = AgentActionHandler()
-                //product-subtype
-                //product-type
-                val entityID = agentHandler.determineEntityId(
+                val action = AgentActionHandler().determineAction(
                     result.queryResult.action,
                     result.queryResult.parameters.fieldsMap
                 )
-                val action = agentHandler.determineAction(result.queryResult.action, result.queryResult.parameters.fieldsMap)
 
                 val agentResponseEvent = AgentResponseEvent(response = result.queryResult.fulfillmentText)
-//                setState {
-//                    copy(
-//                        agentResponseEvent = agentResponseEvent
-//                    )
-//                }
+                setState {
+                    copy(
+                        agentResponseEvent = agentResponseEvent
+                    )
+                }
 
-                val navigateByActionEvent = ActionNavigationEvent(
-                    action
-                )
-//                setState {
-//                    copy(
-//                        actionNavigationEvent = navigateByActionEvent
-//                    )
-//                }
+                val navigateByActionEvent = ActionNavigationEvent(action)
+                setState {
+                    copy(
+                        actionNavigationEvent = navigateByActionEvent
+                    )
+                }
             } catch(ex: Exception) {
                 //TODO Inform the UI
             }

@@ -34,17 +34,6 @@ class AgentActionHandler {
         return AgentAction()
     }
 
-    suspend fun determineEntityId(
-        action: String,
-        parameters: Map<String, com.google.protobuf.Value>
-    ): String {
-        if (action == AgentActionEnum.GetProductType.name) {
-            return handleGetProductTypeID(parameters)
-        }
-
-        return ""
-    }
-
     private suspend fun handleGetProductTypeID(parameters: Map<String, com.google.protobuf.Value>): String {
         val masterCategoryTitle = parameters[productTypeKey]?.stringValue //Could be an alias too.
         return getMasterCategoryId(masterCategoryTitle.toString())

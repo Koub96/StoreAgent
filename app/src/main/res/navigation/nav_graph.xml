@@ -25,12 +25,12 @@
         android:label="fragment_dashboard"
         tools:layout="@layout/fragment_dashboard" >
         <action
-            android:id="@+id/dashboard_to_master_category"
-            app:destination="@id/masterCategoryFragment" />
+            android:id="@+id/dashboard_to_subcategories"
+            app:destination="@id/subcategoriesFragment" />
     </fragment>
     <fragment
-        android:id="@+id/masterCategoryFragment"
+        android:id="@+id/subcategoriesFragment"
         android:name="com.mpsp.storeagent.ui.subcategories.SubcategoriesFragment"
-        android:label="fragment_master_category"
+        android:label="fragment_subcategories"
         tools:layout="@layout/fragment_master_category" />
 </navigation>

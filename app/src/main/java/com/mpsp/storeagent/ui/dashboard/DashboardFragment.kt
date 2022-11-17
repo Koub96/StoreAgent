@@ -9,13 +9,11 @@ import android.speech.tts.TextToSpeech
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -32,18 +30,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-import com.airbnb.mvrx.Mavericks
 import com.airbnb.mvrx.MavericksView
 import com.airbnb.mvrx.compose.collectAsState
 import com.airbnb.mvrx.compose.mavericksViewModel
 import com.airbnb.mvrx.fragmentViewModel
 import com.mpsp.storeagent.R
-import com.mpsp.storeagent.agent.enums.AgentActionEnum
-import com.mpsp.storeagent.models.MasterCategory
-import com.mpsp.storeagent.ui.subcategories.SubcategoriesFragmentArgs
+import com.mpsp.storeagent.agent.intenthandlers.agentNavigation
 import java.util.*
 
 
@@ -82,31 +75,9 @@ class DashboardFragment : Fragment(), MavericksView, RecognitionListener, TextTo
 
             textToSpeech?.speak(event.response, TextToSpeech.QUEUE_ADD, null)
         }
+
         viewModel.onEach(DashboardState::actionNavigationEvent ,uniqueOnly()) { event ->
-//            android.app.AlertDialog.Builder(requireContext())
-//                .setTitle("DEBUG")
-//                .setMessage("Will do naivgation with id " + event.entityID + " and action " + event.action.name)
-//                .setPositiveButton(android.R.string.yes) { dialog, which -> }
-//                .setOnDismissListener {
-//                }
-//                .show()
-
-            if(event.action.navigationEvent == AgentActionEnum.Unspecified)
-                return@onEach
-
-            if(event.action.navigationEvent == AgentActionEnum.GetProductType) {
-                if(event.action.entityMapping[MasterCategory::class.simpleName].isNullOrEmpty())
-                    return@onEach
-
-                findNavController().navigate(
-                    R.id.dashboard_to_master_category,
-                    bundleOf(
-                        Mavericks.KEY_ARG to SubcategoriesFragmentArgs(
-                            event.action.entityMapping[MasterCategory::class.simpleName]!!
-                        )
-                    )
-                )
-            }
+            this.agentNavigation(event.action.navigationEvent, event.action.entityMapping)
         }
     }
 

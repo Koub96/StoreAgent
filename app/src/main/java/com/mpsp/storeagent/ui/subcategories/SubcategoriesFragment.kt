@@ -34,15 +34,19 @@ import com.airbnb.mvrx.compose.collectAsState
 import com.airbnb.mvrx.compose.mavericksViewModel
 import com.airbnb.mvrx.fragmentViewModel
 import com.mpsp.storeagent.R
+import com.mpsp.storeagent.agent.intenthandlers.agentNavigation
 import java.util.*
 
-class SubcategoriesFragment : Fragment(), MavericksView, RecognitionListener {
+class SubcategoriesFragment : Fragment(), MavericksView, RecognitionListener, TextToSpeech.OnInitListener  {
     private val viewModel: SubcategoriesViewModel by fragmentViewModel(SubcategoriesViewModel::class)
     private var speechRecognizer: SpeechRecognizer? = null
     private var textToSpeech: TextToSpeech? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setupTextToSpeech()
+        setupViewModelSubscriptions()
     }
 
     override fun onCreateView(
@@ -54,6 +58,28 @@ class SubcategoriesFragment : Fragment(), MavericksView, RecognitionListener {
                 CreateMasterCategoryScreen()
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        speechRecognizer?.destroy()
+    }
+
+    private fun setupViewModelSubscriptions() {
+        viewModel.onEach(SubcategoriesState::agentResponseEvent ,uniqueOnly()) { event ->
+            if(textToSpeech == null)
+                return@onEach
+
+            textToSpeech?.speak(event.response, TextToSpeech.QUEUE_ADD, null)
+        }
+        viewModel.onEach(SubcategoriesState::actionNavigationEvent ,uniqueOnly()) { event ->
+            this.agentNavigation(event.action.navigationEvent, event.action.entityMapping)
+        }
+    }
+
+    private fun setupTextToSpeech() {
+        textToSpeech = TextToSpeech(requireContext(), this)
+        textToSpeech?.language = Locale.US
     }
 
     @Composable
@@ -225,6 +251,10 @@ class SubcategoriesFragment : Fragment(), MavericksView, RecognitionListener {
     override fun onPartialResults(partialResults: Bundle?) {}
 
     override fun onEvent(eventType: Int, params: Bundle?) {}
+
+    override fun onInit(status: Int) {
+        status.toString()
+    }
 
     override fun invalidate() {}
 }

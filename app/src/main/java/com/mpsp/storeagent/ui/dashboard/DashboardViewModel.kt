@@ -2,8 +2,9 @@ package com.mpsp.storeagent.ui.dashboard
 
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.MavericksViewModel
-import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.cloud.dialogflow.v2.*
+import com.google.cloud.dialogflow.v2.DetectIntentRequest
+import com.google.cloud.dialogflow.v2.QueryInput
+import com.google.cloud.dialogflow.v2.TextInput
 import com.mpsp.storeagent.App
 import com.mpsp.storeagent.AppConstants
 import com.mpsp.storeagent.agent.intenthandlers.AgentActionHandler
@@ -13,7 +14,6 @@ import com.mpsp.storeagent.ui.uievents.ActionNavigationEvent
 import com.mpsp.storeagent.ui.uievents.AgentResponseEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.*
 
 data class DashboardState(
     val agentResponseEvent: AgentResponseEvent = AgentResponseEvent(),
