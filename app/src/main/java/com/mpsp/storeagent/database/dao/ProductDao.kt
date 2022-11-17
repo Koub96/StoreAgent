@@ -11,6 +11,9 @@ interface ProductDao {
     @Query("SELECT * FROM product")
     suspend fun getProducts(): List<Product>
 
+    @Query("SELECT * FROM product WHERE product.subcategoryID = :subcategoryId")
+    suspend fun getProductsBySubcategory(subcategoryId: String): List<Product>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProducts(products: List<Product>)
 }

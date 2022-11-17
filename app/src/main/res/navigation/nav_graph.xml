@@ -32,5 +32,14 @@
         android:id="@+id/subcategoriesFragment"
         android:name="com.mpsp.storeagent.ui.subcategories.SubcategoriesFragment"
         android:label="fragment_subcategories"
-        tools:layout="@layout/fragment_master_category" />
+        tools:layout="@layout/fragment_master_category" >
+        <action
+            android:id="@+id/subcategories_to_products"
+            app:destination="@id/productsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/productsFragment"
+        android:name="com.mpsp.storeagent.ui.products.ProductsFragment"
+        android:label="fragment_products"
+        tools:layout="@layout/fragment_products" />
 </navigation>

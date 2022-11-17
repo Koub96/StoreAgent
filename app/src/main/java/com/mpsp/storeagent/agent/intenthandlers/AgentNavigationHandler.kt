@@ -8,6 +8,7 @@ import com.mpsp.storeagent.R
 import com.mpsp.storeagent.agent.enums.AgentActionEnum
 import com.mpsp.storeagent.models.MasterCategory
 import com.mpsp.storeagent.models.Subcategory
+import com.mpsp.storeagent.ui.products.ProductsFragmentArgs
 import com.mpsp.storeagent.ui.subcategories.SubcategoriesFragmentArgs
 
 fun Fragment.agentNavigation(
@@ -31,7 +32,14 @@ fun Fragment.agentNavigation(
         )
     } else if (agentNavigationAction == AgentActionEnum.GetProductTypeAndSubtype) {
         if (!entityMapping[Subcategory::class.simpleName].isNullOrEmpty()) {
-            //Navigation to subcategory with all the corresponding products.
+            findNavController().navigate(
+                R.id.subcategories_to_products,
+                bundleOf(
+                    Mavericks.KEY_ARG to ProductsFragmentArgs(
+                        entityMapping[Subcategory::class.simpleName]!!
+                    )
+                )
+            )
             return
         }
 
@@ -46,7 +54,15 @@ fun Fragment.agentNavigation(
                     )
                 )
             } else {
-                //Navigation to subcategory with all the corresponding products.
+                findNavController().navigate(
+                    R.id.subcategories_to_products,
+                    bundleOf(
+                        Mavericks.KEY_ARG to ProductsFragmentArgs(
+                            entityMapping[Subcategory::class.simpleName]!!
+                        )
+                    )
+                )
+                return
             }
         }
     }
