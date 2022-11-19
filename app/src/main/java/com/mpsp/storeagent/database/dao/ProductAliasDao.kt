@@ -11,6 +11,9 @@ interface ProductAliasDao {
     @Query("SELECT * FROM ProductAlias WHERE ProductAlias.productID = :productID")
     fun getProductAlias(productID: String): List<ProductAlias>
 
+    @Query("SELECT productID FROM ProductAlias WHERE ProductAlias.alias = :alias")
+    suspend fun getProductIdByAlias(alias: String): String?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProductAlias(productAlias: List<ProductAlias>)
 }

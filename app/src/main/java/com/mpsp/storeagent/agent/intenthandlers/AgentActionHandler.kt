@@ -3,12 +3,14 @@ package com.mpsp.storeagent.agent.intenthandlers
 import com.mpsp.storeagent.App
 import com.mpsp.storeagent.agent.enums.AgentActionEnum
 import com.mpsp.storeagent.models.MasterCategory
+import com.mpsp.storeagent.models.Product
 import com.mpsp.storeagent.models.Subcategory
 import com.mpsp.storeagent.models.agent.AgentAction
 
 class AgentActionHandler {
     private val productTypeKey: String = "product-type"
     private val productSubtypeKey: String = "product-subtype"
+    private val productKey: String = "product"
 
     suspend fun determineAction(
         action: String,
@@ -28,6 +30,13 @@ class AgentActionHandler {
                     MasterCategory::class.simpleName!! to masterToSubcategoryIds.first,
                     Subcategory::class.simpleName!! to masterToSubcategoryIds.second
                 )
+            )
+        } else if (action == AgentActionEnum.GetProduct.name) {
+            val productId = handleGetProductId(parameters)
+
+            return AgentAction(
+                AgentActionEnum.GetProduct,
+                mapOf(Product::class.simpleName!! to productId)
             )
         }
 
@@ -85,5 +94,23 @@ class AgentActionHandler {
         }
 
         return subcategoryId
+    }
+
+    private suspend fun handleGetProductId(parameters: Map<String, com.google.protobuf.Value>): String {
+        val productTitle = parameters[productKey]?.stringValue ?: return "" //Could be an alias too.
+
+        val productId = App.getInstance().getDatabase().ProductDao().getProductIdByName(productTitle)
+        if(productId == null) {
+            val productIdByAlias = App.getInstance().getDatabase()
+                .ProductAliasDao()
+                .getProductIdByAlias(productTitle)
+
+            return if(productIdByAlias.isNullOrEmpty())
+                ""
+            else
+                productIdByAlias
+        }
+
+        return productId
     }
 }
