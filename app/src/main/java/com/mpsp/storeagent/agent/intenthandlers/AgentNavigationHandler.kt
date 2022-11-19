@@ -22,8 +22,8 @@ fun Fragment.agentNavigation(
         if (entityMapping[MasterCategory::class.simpleName].isNullOrEmpty())
             return
 
-        findNavController().navigate(
-            R.id.dashboard_to_subcategories,
+       findNavController().navigate(
+            R.id.subcategoriesFragment,
             bundleOf(
                 Mavericks.KEY_ARG to SubcategoriesFragmentArgs(
                     entityMapping[MasterCategory::class.simpleName]!!
@@ -33,7 +33,7 @@ fun Fragment.agentNavigation(
     } else if (agentNavigationAction == AgentActionEnum.GetProductTypeAndSubtype) {
         if (!entityMapping[Subcategory::class.simpleName].isNullOrEmpty()) {
             findNavController().navigate(
-                R.id.subcategories_to_products,
+                R.id.productsFragment,
                 bundleOf(
                     Mavericks.KEY_ARG to ProductsFragmentArgs(
                         entityMapping[Subcategory::class.simpleName]!!
@@ -46,7 +46,7 @@ fun Fragment.agentNavigation(
         if (!entityMapping[MasterCategory::class.simpleName].isNullOrEmpty()) {
             if (entityMapping[Subcategory::class.simpleName].isNullOrEmpty()) {
                 findNavController().navigate(
-                    R.id.dashboard_to_subcategories,
+                    R.id.subcategoriesFragment,
                     bundleOf(
                         Mavericks.KEY_ARG to SubcategoriesFragmentArgs(
                             entityMapping[MasterCategory::class.simpleName]!!
@@ -55,7 +55,7 @@ fun Fragment.agentNavigation(
                 )
             } else {
                 findNavController().navigate(
-                    R.id.subcategories_to_products,
+                    R.id.productsFragment,
                     bundleOf(
                         Mavericks.KEY_ARG to ProductsFragmentArgs(
                             entityMapping[Subcategory::class.simpleName]!!
