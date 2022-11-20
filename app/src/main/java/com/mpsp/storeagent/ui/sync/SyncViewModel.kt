@@ -442,7 +442,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
             val parts = arrayListOf(
                 Intent.TrainingPhrase.Part.newBuilder().setText(partBeforeProduct).build(),
-                Intent.TrainingPhrase.Part.newBuilder().setText(product).setEntityType("@product:product").build(),
+                Intent.TrainingPhrase.Part.newBuilder().setText(product).setEntityType("@product").setAlias("product").build(),
                 Intent.TrainingPhrase.Part.newBuilder().setText(partAfterProduct).build(),
             )
 
@@ -459,7 +459,7 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
     private fun createAgentMasterCategoryTrainingPhrases(
         masterCategoryTrainingPhrases: ArrayList<String>
     ): ArrayList<Intent.TrainingPhrase> {
-        val agentTrainingPhrasesProduct = arrayListOf<Intent.TrainingPhrase>()
+        val agentTrainingPhrasesMasterCategory = arrayListOf<Intent.TrainingPhrase>()
         masterCategoryTrainingPhrases.forEach { phrase ->
             val startingPoint = phrase.indexOfFirst { it == '@' }
             val endingPoint = phrase.indexOfLast { it == '@' }
@@ -474,14 +474,14 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                 Intent.TrainingPhrase.Part.newBuilder().setText(partAfterMasterCategory).build(),
             )
 
-            agentTrainingPhrasesProduct.add(
+            agentTrainingPhrasesMasterCategory.add(
                 Intent.TrainingPhrase.newBuilder().addAllParts(
                     parts
                 ).build()
             )
         }
 
-        return agentTrainingPhrasesProduct
+        return agentTrainingPhrasesMasterCategory
     }
 
     private fun createAgentProductTrainingPhrasesWithQuantity(finalProductWithQuantityTrainingPhrases: ArrayList<String>): ArrayList<Intent.TrainingPhrase> {
@@ -506,9 +506,9 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
                 parts = arrayListOf(
                     Intent.TrainingPhrase.Part.newBuilder() .setText(phraseBeforeQuantity).build(),
-                    Intent.TrainingPhrase.Part.newBuilder().setText(quantity).setEntityType("@sys.number").build(),
+                    Intent.TrainingPhrase.Part.newBuilder().setText(quantity).setEntityType("@sys.number").setAlias("quantity").build(),
                     Intent.TrainingPhrase.Part.newBuilder().setText(phraseAfterQuantity).build(),
-                    Intent.TrainingPhrase.Part.newBuilder().setText(product).setEntityType("@product:product").build(),
+                    Intent.TrainingPhrase.Part.newBuilder().setText(product).setEntityType("@product").setAlias("product").build(),
                     Intent.TrainingPhrase.Part.newBuilder().setText(partAfterProduct).build(),
                 )
 
@@ -521,9 +521,9 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
                 parts = arrayListOf(
                     Intent.TrainingPhrase.Part.newBuilder().setText(partBeforeProduct).build(),
-                    Intent.TrainingPhrase.Part.newBuilder().setText(product).setEntityType("@product:product").build(),
+                    Intent.TrainingPhrase.Part.newBuilder().setText(product).setEntityType("@product").setAlias("product").build(),
                     Intent.TrainingPhrase.Part.newBuilder().setText(phraseBeforeQuantity).build(),
-                    Intent.TrainingPhrase.Part.newBuilder().setText(quantity).setEntityType("@sys.number").build(),
+                    Intent.TrainingPhrase.Part.newBuilder().setText(quantity).setEntityType("@sys.number").setAlias("quantity").build(),
                     Intent.TrainingPhrase.Part.newBuilder().setText(phraseAfterQuantity).build(),
                 )
             }

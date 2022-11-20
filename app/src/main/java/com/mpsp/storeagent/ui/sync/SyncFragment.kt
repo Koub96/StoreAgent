@@ -70,8 +70,7 @@ class SyncFragment : Fragment(), MavericksView {
             if(event.id.isNullOrEmpty())
                 return@onEach
 
-            val message = if(event.isSuccess)
-            {
+            val message = if(event.isSuccess) {
                 getString(R.string.syncSuccess)
             } else {
                 getString(R.string.syncFail)

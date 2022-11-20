@@ -71,13 +71,25 @@ class ProductsViewModel(initialState: ProductsState) : MavericksViewModel<Produc
                 if(result == null)
                     return@launch
 
-                val action = AgentActionHandler().determineAction(
+                val actionHandler = AgentActionHandler()
+                val action = actionHandler.determineAction(
                     result.queryResult.action,
                     result.queryResult.parameters.fieldsMap
                 )
 
-                if(result.queryResult.action == AgentActionEnum.GetProduct.name) {
+                if(action.navigationEvent.name == AgentActionEnum.GetProduct.name) {
                     val productId = action.entityMapping[Product::class.simpleName!!]
+                    if(productId != null) {
+                        val product = database.ProductDao().getProductById(productId)
+                        //TODO Add to basket
+                        product.toString()
+                    }
+                } else if(action.navigationEvent.name == AgentActionEnum.GetProductWithQuantity.name) {
+                    val productId = action.entityMapping[Product::class.simpleName!!]
+                    val quantity = action.entityMapping[actionHandler.quantityKey]
+
+                    quantity.toString()
+                    productId.toString()
                     if(productId != null) {
                         val product = database.ProductDao().getProductById(productId)
                         //TODO Add to basket

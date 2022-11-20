@@ -11,6 +11,7 @@ class AgentActionHandler {
     private val productTypeKey: String = "product-type"
     private val productSubtypeKey: String = "product-subtype"
     private val productKey: String = "product"
+    val quantityKey: String = "quantity"
 
     suspend fun determineAction(
         action: String,
@@ -37,6 +38,20 @@ class AgentActionHandler {
             return AgentAction(
                 AgentActionEnum.GetProduct,
                 mapOf(Product::class.simpleName!! to productId)
+            )
+        } else if (action == AgentActionEnum.GetProductWithQuantity.name) {
+            val productId = handleGetProductId(parameters)
+            val quantity = if(parameters[quantityKey] == null)
+                ""
+            else
+                parameters[quantityKey]!!.numberValue.toString()
+
+            return AgentAction(
+                AgentActionEnum.GetProductWithQuantity,
+                mapOf(
+                    Product::class.simpleName!! to productId,
+                    quantityKey to quantity
+                )
             )
         }
 
