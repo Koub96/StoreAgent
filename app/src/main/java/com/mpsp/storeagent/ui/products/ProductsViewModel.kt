@@ -15,6 +15,7 @@ import com.mpsp.storeagent.agent.session.AgentSession
 import com.mpsp.storeagent.models.Product
 import com.mpsp.storeagent.ui.subcategories.SubcategoriesState
 import com.mpsp.storeagent.ui.uievents.ActionNavigationEvent
+import com.mpsp.storeagent.ui.uievents.AddToBasketEvent
 import com.mpsp.storeagent.ui.uievents.AgentResponseEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,6 +30,7 @@ data class ProductsState(
     @PersistState val subcategoryId: String = "",
     val products: List<Product> = emptyList(),
     val actionNavigationEvent: ActionNavigationEvent = ActionNavigationEvent(),
+    val addToBasketEvent: AddToBasketEvent = AddToBasketEvent(),
     val agentResponseEvent: AgentResponseEvent = AgentResponseEvent(),
     val showSpeechDialog: Boolean = false
 ) : MavericksState {
@@ -80,20 +82,27 @@ class ProductsViewModel(initialState: ProductsState) : MavericksViewModel<Produc
                 if(action.navigationEvent.name == AgentActionEnum.GetProduct.name) {
                     val productId = action.entityMapping[Product::class.simpleName!!]
                     if(productId != null) {
-                        val product = database.ProductDao().getProductById(productId)
-                        //TODO Add to basket
-                        product.toString()
+                        val basketEvent = AddToBasketEvent(productId)
+                        setState {
+                            copy(
+                                addToBasketEvent = basketEvent
+                            )
+                        }
                     }
                 } else if(action.navigationEvent.name == AgentActionEnum.GetProductWithQuantity.name) {
                     val productId = action.entityMapping[Product::class.simpleName!!]
                     val quantity = action.entityMapping[actionHandler.quantityKey]
 
-                    quantity.toString()
-                    productId.toString()
                     if(productId != null) {
-                        val product = database.ProductDao().getProductById(productId)
-                        //TODO Add to basket
-                        product.toString()
+                        val basketEvent = AddToBasketEvent(productId = productId)
+                        if(!quantity.isNullOrEmpty())
+                            basketEvent.quantity = quantity
+
+                        setState {
+                            copy(
+                                addToBasketEvent = basketEvent
+                            )
+                        }
                     }
                 }
 
