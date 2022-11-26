@@ -42,4 +42,9 @@
         android:name="com.mpsp.storeagent.ui.products.ProductsFragment"
         android:label="fragment_products"
         tools:layout="@layout/fragment_products" />
+    <fragment
+        android:id="@+id/basketFragment"
+        android:name="com.mpsp.storeagent.ui.basket.BasketFragment"
+        android:label="fragment_basket"
+        tools:layout="@layout/fragment_basket" />
 </navigation>

@@ -53,6 +53,11 @@ class AgentActionHandler {
                     quantityKey to quantity
                 )
             )
+        } else if (action == AgentActionEnum.GetBasket.name) {
+            return AgentAction(
+                AgentActionEnum.GetBasket,
+                emptyMap()
+            )
         }
 
         return AgentAction()

@@ -12,6 +12,6 @@ interface BasketDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBasketLine(basket: Basket)
 
-    @Query("SELECT * FROM Basket WHERE Basket.id = :basketID")
+    @Query("SELECT * FROM Basket WHERE Basket.basketID = :basketID")
     fun getBasket(basketID: String): Flow<List<Basket>>
 }

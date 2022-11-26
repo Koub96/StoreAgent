@@ -5,5 +5,6 @@ enum class AgentActionEnum {
     GetProductTypeAndSubtype,
     GetProduct,
     GetProductWithQuantity,
+    GetBasket,
     Unspecified
 }
