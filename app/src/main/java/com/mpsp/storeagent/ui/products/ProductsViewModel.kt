@@ -8,12 +8,11 @@ import com.google.cloud.dialogflow.v2.DetectIntentRequest
 import com.google.cloud.dialogflow.v2.QueryInput
 import com.google.cloud.dialogflow.v2.TextInput
 import com.mpsp.storeagent.App
-import com.mpsp.storeagent.AppConstants
+import com.mpsp.storeagent.singletons.AppConstants
 import com.mpsp.storeagent.agent.enums.AgentActionEnum
 import com.mpsp.storeagent.agent.intenthandlers.AgentActionHandler
 import com.mpsp.storeagent.agent.session.AgentSession
 import com.mpsp.storeagent.models.Product
-import com.mpsp.storeagent.ui.subcategories.SubcategoriesState
 import com.mpsp.storeagent.ui.uievents.ActionNavigationEvent
 import com.mpsp.storeagent.ui.uievents.AddToBasketEvent
 import com.mpsp.storeagent.ui.uievents.AgentResponseEvent
@@ -79,6 +78,7 @@ class ProductsViewModel(initialState: ProductsState) : MavericksViewModel<Produc
                     result.queryResult.parameters.fieldsMap
                 )
 
+                //TODO All screens needs that piece of code to be able to add a product to the basket
                 if(action.navigationEvent.name == AgentActionEnum.GetProduct.name) {
                     val productId = action.entityMapping[Product::class.simpleName!!]
                     if(productId != null) {

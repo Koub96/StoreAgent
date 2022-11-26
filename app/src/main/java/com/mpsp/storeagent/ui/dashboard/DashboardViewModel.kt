@@ -6,7 +6,7 @@ import com.google.cloud.dialogflow.v2.DetectIntentRequest
 import com.google.cloud.dialogflow.v2.QueryInput
 import com.google.cloud.dialogflow.v2.TextInput
 import com.mpsp.storeagent.App
-import com.mpsp.storeagent.AppConstants
+import com.mpsp.storeagent.singletons.AppConstants
 import com.mpsp.storeagent.agent.intenthandlers.AgentActionHandler
 import com.mpsp.storeagent.agent.session.AgentSession
 import com.mpsp.storeagent.models.MasterCategory

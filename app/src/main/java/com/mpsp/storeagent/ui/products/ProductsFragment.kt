@@ -81,6 +81,9 @@ class ProductsFragment : Fragment(), MavericksView, RecognitionListener, TextToS
             this.agentNavigation(event.action.navigationEvent, event.action.entityMapping)
         }
         viewModel.onEach(ProductsState::addToBasketEvent ,uniqueOnly()) { event ->
+            if(event.productId.isNullOrEmpty())
+                return@onEach
+
             sharedBasketViewModel.addProductToBasket(event.productId, event.quantity)
         }
     }

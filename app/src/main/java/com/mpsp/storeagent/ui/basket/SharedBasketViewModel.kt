@@ -2,6 +2,9 @@ package com.mpsp.storeagent.ui.basket
 
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.MavericksViewModel
+import com.mpsp.storeagent.App
+import com.mpsp.storeagent.models.Basket
+import com.mpsp.storeagent.singletons.AppConstants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -10,9 +13,16 @@ data class SharedBasketState(
 ) : MavericksState
 
 class SharedBasketViewModel(initialState: SharedBasketState) : MavericksViewModel<SharedBasketState>(initialState) {
+    val database = App.getInstance().getDatabase()
 
     fun addProductToBasket(productId: String, quantity: String = "") = viewModelScope.launch(Dispatchers.IO) {
-        productId.toString()
-        quantity.toString()
+        val newBasketLine = if(!quantity.isNullOrEmpty())
+            Basket(basketID = AppConstants.currentBasketId, productID = productId, quantity = quantity.toFloat().toInt())
+        else
+            Basket(basketID = AppConstants.currentBasketId, productID = productId)
+
+        viewModelScope.launch(Dispatchers.IO) {
+            database.BasketDao().insertBasketLine(newBasketLine)
+        }
     }
 }

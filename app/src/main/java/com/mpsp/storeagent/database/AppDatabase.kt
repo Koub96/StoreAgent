@@ -13,7 +13,8 @@ import com.mpsp.storeagent.models.*
         MasterCategory::class,
         MasterCategoryAlias::class,
         SubcategoryAlias::class,
-        MasterSubcategory::class
+        MasterSubcategory::class,
+        Basket::class,
     ]
     , version = 1
 )
@@ -25,4 +26,5 @@ abstract class AppDatabase: RoomDatabase() {
     abstract fun MasterCategoryAliasDao(): MasterCategoryAliasDao
     abstract fun SubcategoryAliasDao(): SubcategoryAliasDao
     abstract fun MasterSubcategoryDao(): MasterSubcategoryDao
+    abstract fun BasketDao(): BasketDao
 }

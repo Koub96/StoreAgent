@@ -4,7 +4,7 @@ import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.cloud.dialogflow.v2.SessionName
 import com.google.cloud.dialogflow.v2.SessionsClient
 import com.google.cloud.dialogflow.v2.SessionsSettings
-import com.mpsp.storeagent.AppConstants
+import com.mpsp.storeagent.singletons.AppConstants
 import java.util.*
 
 //Session Client and Session Name must live through the whole process.
