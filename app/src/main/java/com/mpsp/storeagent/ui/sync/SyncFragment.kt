@@ -34,7 +34,7 @@ import com.airbnb.mvrx.MavericksView
 import com.airbnb.mvrx.compose.collectAsState
 import com.airbnb.mvrx.compose.mavericksViewModel
 import com.airbnb.mvrx.fragmentViewModel
-import com.mpsp.storeagent.AppConstants
+import com.mpsp.storeagent.singletons.AppConstants
 import com.mpsp.storeagent.R
 
 

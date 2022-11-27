@@ -30,14 +30,18 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.fragment.app.Fragment
 import com.airbnb.mvrx.MavericksView
+import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.compose.collectAsState
 import com.airbnb.mvrx.compose.mavericksViewModel
 import com.airbnb.mvrx.fragmentViewModel
 import com.mpsp.storeagent.R
 import com.mpsp.storeagent.agent.intenthandlers.agentNavigation
+import com.mpsp.storeagent.ui.basket.SharedBasketViewModel
+import com.mpsp.storeagent.ui.dashboard.DashboardState
 import java.util.*
 
-class SubcategoriesFragment : Fragment(), MavericksView, RecognitionListener, TextToSpeech.OnInitListener  {
+class SubcategoriesFragment : Fragment(), MavericksView, RecognitionListener, TextToSpeech.OnInitListener {
+    private val sharedBasketViewModel: SharedBasketViewModel by activityViewModel(SharedBasketViewModel::class)
     private val viewModel: SubcategoriesViewModel by fragmentViewModel(SubcategoriesViewModel::class)
     private var speechRecognizer: SpeechRecognizer? = null
     private var textToSpeech: TextToSpeech? = null
@@ -74,6 +78,12 @@ class SubcategoriesFragment : Fragment(), MavericksView, RecognitionListener, Te
         }
         viewModel.onEach(SubcategoriesState::actionNavigationEvent ,uniqueOnly()) { event ->
             this.agentNavigation(event.action.navigationEvent, event.action.entityMapping)
+        }
+        viewModel.onEach(SubcategoriesState::addToBasketEvent ,uniqueOnly()) { event ->
+            if(event.productId.isNullOrEmpty())
+                return@onEach
+
+            sharedBasketViewModel.addProductToBasket(event.productId, event.quantity)
         }
     }
 

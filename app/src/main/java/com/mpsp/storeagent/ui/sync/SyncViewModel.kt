@@ -10,12 +10,9 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.protobuf.FieldMask
 import com.mpsp.storeagent.App
-import com.mpsp.storeagent.AppConstants
+import com.mpsp.storeagent.singletons.AppConstants
 import com.mpsp.storeagent.database.AppDatabase
-import com.mpsp.storeagent.models.MasterCategory
-import com.mpsp.storeagent.models.Product
-import com.mpsp.storeagent.models.Subcategory
-import com.mpsp.storeagent.models.SyncParameters
+import com.mpsp.storeagent.models.*
 import com.mpsp.storeagent.ui.uievents.SyncEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
