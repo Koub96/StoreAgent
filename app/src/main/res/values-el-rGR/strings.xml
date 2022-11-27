@@ -11,4 +11,5 @@
     <string name="agentSpeechMessage">Παρακαλώ μιλήστε.</string>
     <string name="quantity">Ποσότητα: </string>
     <string name="price">Τιμή: </string>
+    <string name="sum">Σύνολο: </string>
 </resources>

@@ -23,8 +23,8 @@ data class Product(
     val masterCategoryID: String,
     val subcategoryID: String,
     val name: String = "",
-    val price: Float = 1.0f,
-    val discount: Float = 0.45f,
+    val price: Double = 1.0,
+    val discount: Double = 0.45,
     val stringField1: String = "",
     val numericField1: String = ""
 )

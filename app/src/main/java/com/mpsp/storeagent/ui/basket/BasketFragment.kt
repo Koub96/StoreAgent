@@ -70,6 +70,9 @@ class BasketFragment : Fragment(), MavericksView {
                     }
                 )
             },
+            bottomBar = {
+               FooterView()
+            },
             content = {
                 Box(
                     modifier = Modifier
@@ -130,9 +133,21 @@ class BasketFragment : Fragment(), MavericksView {
     }
 
     @Composable
+    private fun FooterView() {
+        val viewModel: BasketViewModel = mavericksViewModel()
+        val footerData = viewModel.collectAsState(BasketState::footerData)
+
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.LightGray)) {
+            Text(text = getString(R.string.sum) + footerData.value.totalSum.toString())
+        }
+    }
+
+    @Composable
     private fun CreateSpeechDialog() {
-        val viewModel: ProductsViewModel = mavericksViewModel()
-        val showSpeechDialog = viewModel.collectAsState(ProductsState::showSpeechDialog)
+        val viewModel: BasketViewModel = mavericksViewModel()
+        val showSpeechDialog = viewModel.collectAsState(BasketState::showSpeechDialog)
 
         if(showSpeechDialog.value) {
             Dialog(
