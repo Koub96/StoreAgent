@@ -33,7 +33,7 @@ class BasketViewModel(initialState: BasketState) : MavericksViewModel<BasketStat
             .collect { basketLines ->
                 val productLines = basketLines.map { basketLine ->
                     val product = database.ProductDao().getProductById(basketLine.productID)
-                    ProductLine(productName = product.name, quantity = basketLine.quantity)
+                    ProductLine(productName = product.name, quantity = basketLine.quantity, price = product.price)
                 }
 
                 setState {

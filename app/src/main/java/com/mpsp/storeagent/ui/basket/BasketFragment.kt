@@ -36,6 +36,7 @@ import com.mpsp.storeagent.ui.products.ProductsViewModel
 
 class BasketFragment : Fragment(), MavericksView {
 
+    //TODO Remember to change the basket id and reset the agent when order is finished.
     val viewModel: BasketViewModel by fragmentViewModel(BasketViewModel::class)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -119,7 +120,8 @@ class BasketFragment : Fragment(), MavericksView {
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(text = item.productName, textAlign = TextAlign.Center)
-                            Text(text = item.quantity.toString(), textAlign = TextAlign.Center)
+                            Text(text = getString(R.string.quantity) + item.quantity.toString(), textAlign = TextAlign.Center)
+                            Text(text = getString(R.string.price) + item.price.toString(), textAlign = TextAlign.Center)
                         }
                     }
                 }
