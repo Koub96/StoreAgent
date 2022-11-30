@@ -67,5 +67,7 @@ fun Fragment.agentNavigation(
         }
     } else if(agentNavigationAction == AgentActionEnum.GetBasket) {
         findNavController().navigate(R.id.basketFragment)
+    } else if (agentNavigationAction == AgentActionEnum.FinalizeOrder) {
+        //TODO Navigate to confirm page
     }
 }

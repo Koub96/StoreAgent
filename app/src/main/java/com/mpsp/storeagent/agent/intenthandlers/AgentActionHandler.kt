@@ -58,6 +58,11 @@ class AgentActionHandler {
                 AgentActionEnum.GetBasket,
                 emptyMap()
             )
+        } else if(action == AgentActionEnum.FinalizeOrder.name) {
+            return AgentAction(
+                AgentActionEnum.FinalizeOrder,
+                emptyMap()
+            )
         }
 
         return AgentAction()

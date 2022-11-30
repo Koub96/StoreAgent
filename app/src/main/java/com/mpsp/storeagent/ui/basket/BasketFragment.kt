@@ -1,6 +1,11 @@
 package com.mpsp.storeagent.ui.basket
 
+import android.content.Intent
 import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.speech.tts.TextToSpeech
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -31,16 +36,25 @@ import com.airbnb.mvrx.compose.mavericksActivityViewModel
 import com.airbnb.mvrx.compose.mavericksViewModel
 import com.airbnb.mvrx.fragmentViewModel
 import com.mpsp.storeagent.R
+import com.mpsp.storeagent.agent.intenthandlers.agentNavigation
+import com.mpsp.storeagent.ui.dashboard.DashboardState
 import com.mpsp.storeagent.ui.products.ProductsState
 import com.mpsp.storeagent.ui.products.ProductsViewModel
+import java.util.*
 
-class BasketFragment : Fragment(), MavericksView {
+class BasketFragment : Fragment(), MavericksView, RecognitionListener, TextToSpeech.OnInitListener {
 
     //TODO Remember to change the basket id and reset the agent when order is finished.
-    val viewModel: BasketViewModel by fragmentViewModel(BasketViewModel::class)
+    private val sharedBasketViewModel: SharedBasketViewModel by activityViewModel(SharedBasketViewModel::class)
+    private val viewModel: BasketViewModel by fragmentViewModel(BasketViewModel::class)
+    private var speechRecognizer: SpeechRecognizer? = null
+    private var textToSpeech: TextToSpeech? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setupTextToSpeech()
+        setupViewModelSubscriptions()
     }
 
     override fun onCreateView(
@@ -54,12 +68,44 @@ class BasketFragment : Fragment(), MavericksView {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        speechRecognizer?.destroy()
+    }
+
+    private fun setupTextToSpeech() {
+        textToSpeech = TextToSpeech(requireContext(), this)
+        textToSpeech?.language = Locale.US
+    }
+
+
+    private fun setupViewModelSubscriptions() {
+        viewModel.onEach(BasketState::agentResponseEvent ,uniqueOnly()) { event ->
+            if(textToSpeech == null)
+                return@onEach
+
+            textToSpeech?.speak(event.response, TextToSpeech.QUEUE_ADD, null)
+        }
+
+        viewModel.onEach(BasketState::actionNavigationEvent ,uniqueOnly()) { event ->
+            this.agentNavigation(event.action.navigationEvent, event.action.entityMapping)
+        }
+
+        viewModel.onEach(BasketState::addToBasketEvent ,uniqueOnly()) { event ->
+            if(event.productId.isNullOrEmpty())
+                return@onEach
+
+            sharedBasketViewModel.addProductToBasket(event.productId, event.quantity)
+        }
+    }
+
     @Composable
     private fun CreateBasketScreen() {
         Scaffold(
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = {
+                        initiateSpeechToText()
                     },
                     content = {
                         Icon(
@@ -152,6 +198,7 @@ class BasketFragment : Fragment(), MavericksView {
         if(showSpeechDialog.value) {
             Dialog(
                 onDismissRequest = {
+                    speechRecognizer?.cancel()
                     viewModel.hideSpeechDialog()
                 }
             ) {
@@ -187,6 +234,60 @@ class BasketFragment : Fragment(), MavericksView {
                 }
             }
         }
+    }
+
+    private fun initiateSpeechToText() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        intent.putExtra(
+            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+        )
+        intent.putExtra(
+            RecognizerIntent.EXTRA_CALLING_PACKAGE,
+            requireContext().applicationInfo.packageName
+        )
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.ENGLISH);
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2)
+        intent.putExtra(
+            RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,
+            5000L
+        )
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(requireContext())
+        speechRecognizer!!.setRecognitionListener(this)
+        speechRecognizer!!.startListening(intent)
+    }
+
+    override fun onReadyForSpeech(params: Bundle?) {
+        viewModel.showSpeechDialog()
+    }
+
+    override fun onBeginningOfSpeech() {}
+
+    override fun onRmsChanged(rmsdB: Float) {}
+
+    override fun onBufferReceived(buffer: ByteArray?) {}
+
+    override fun onEndOfSpeech() {
+        viewModel.hideSpeechDialog()
+    }
+
+    override fun onError(error: Int) {
+        //TODO Error Handling
+        viewModel.hideSpeechDialog()
+    }
+
+    override fun onResults(results: Bundle?) {
+        val res = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+        if(!res.isNullOrEmpty())
+            viewModel.processSpeech(res[0])
+    }
+
+    override fun onPartialResults(partialResults: Bundle?) {}
+
+    override fun onEvent(eventType: Int, params: Bundle?) {}
+
+    override fun onInit(status: Int) {
+        status.toString()
     }
 
     override fun invalidate() {}
