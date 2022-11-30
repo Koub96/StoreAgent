@@ -47,4 +47,9 @@
         android:name="com.mpsp.storeagent.ui.basket.BasketFragment"
         android:label="fragment_basket"
         tools:layout="@layout/fragment_basket" />
+    <fragment
+        android:id="@+id/confirmationFragment"
+        android:name="com.mpsp.storeagent.ui.confirmation.ConfirmationFragment"
+        android:label="fragment_confirmation"
+        tools:layout="@layout/fragment_confirmation" />
 </navigation>

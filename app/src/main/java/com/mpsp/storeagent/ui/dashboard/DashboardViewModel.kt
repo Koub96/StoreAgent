@@ -26,7 +26,7 @@ data class DashboardState(
     val showSpeechDialog: Boolean = false
 ) : MavericksState
 
-class DashboardViewModel(initialState: DashboardState) : MavericksViewModel<DashboardState>(initialState)  {
+class DashboardViewModel(initialState: DashboardState) : MavericksViewModel<DashboardState>(initialState) {
     private val appDatabase = App.getInstance().getDatabase()
     private val masterCategoryDao = appDatabase.MasterCategoryDao()
 
