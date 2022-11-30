@@ -65,9 +65,10 @@ fun Fragment.agentNavigation(
                 return
             }
         }
-    } else if(agentNavigationAction == AgentActionEnum.GetBasket) {
+    } else if(agentNavigationAction == AgentActionEnum.GetBasket || agentNavigationAction == AgentActionEnum.FinalizeOrder) {
         findNavController().navigate(R.id.basketFragment)
-    } else if (agentNavigationAction == AgentActionEnum.FinalizeOrder) {
-        findNavController().navigate(R.id.confirmationFragment)
     }
+//    else if (agentNavigationAction == AgentActionEnum.FinalizeOrder) {
+//        findNavController().navigate(R.id.confirmationFragment)
+//    }
 }

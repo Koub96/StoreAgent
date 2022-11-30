@@ -11,5 +11,7 @@
     <string name="agentSpeechMessage">Please Speak.</string>
     <string name="quantity">Quantity: </string>
     <string name="price">Price: </string>
-    <string name="sum">Sum: </string>
+    <string name="sum">Total: </string>
+    <string name="sendOrder">Send Order</string>
+    <string name="successOrder">Your order was sent successfully</string>
 </resources>

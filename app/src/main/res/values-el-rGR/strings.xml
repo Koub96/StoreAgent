@@ -12,4 +12,6 @@
     <string name="quantity">Ποσότητα: </string>
     <string name="price">Τιμή: </string>
     <string name="sum">Σύνολο: </string>
+    <string name="sendOrder">Αποστολή Παραγγελίας</string>
+    <string name="successOrder">Η παραγγελίας σας καταχωρήθηκε με επιτυχία</string>
 </resources>

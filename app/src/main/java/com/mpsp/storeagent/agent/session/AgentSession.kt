@@ -34,9 +34,13 @@ object AgentSession {
     }
 
     fun terminateSessionClient() {
-        if(sessionsClient == null)
+        if(sessionsClient == null) {
+            sessionName = null
             return
+        }
 
         sessionsClient?.shutdown()
+        sessionName = null
+        sessionsClient = null
     }
 }

@@ -17,17 +17,20 @@ import com.mpsp.storeagent.singletons.AppConstants
 import com.mpsp.storeagent.ui.uievents.ActionNavigationEvent
 import com.mpsp.storeagent.ui.uievents.AddToBasketEvent
 import com.mpsp.storeagent.ui.uievents.AgentResponseEvent
+import com.mpsp.storeagent.ui.uievents.FinalizedOrderEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.*
 
 //App will have one global basket.
 data class BasketState(
     val agentResponseEvent: AgentResponseEvent = AgentResponseEvent(),
     val actionNavigationEvent: ActionNavigationEvent = ActionNavigationEvent(),
     val addToBasketEvent: AddToBasketEvent = AddToBasketEvent(),
+    val finalizedOrderEvent: FinalizedOrderEvent = FinalizedOrderEvent(),
     val showSpeechDialog: Boolean = false,
     val productLines: List<ProductLine> = emptyList(),
     val footerData: BasketFooter = BasketFooter()
@@ -49,6 +52,26 @@ class BasketViewModel(initialState: BasketState) : MavericksViewModel<BasketStat
     fun hideSpeechDialog() {
         setState {
             copy(showSpeechDialog = false)
+        }
+    }
+
+    fun finalizeOrder() {
+        setState {
+            copy(
+                showSpeechDialog = true
+            )
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            AgentSession.terminateSessionClient()
+
+            val finalizedOrderEvent = FinalizedOrderEvent(id = UUID.randomUUID().toString())
+            setState {
+                copy(
+                    showSpeechDialog = false,
+                    finalizedOrderEvent = finalizedOrderEvent
+                )
+            }
         }
     }
 
@@ -122,7 +145,7 @@ class BasketViewModel(initialState: BasketState) : MavericksViewModel<BasketStat
     }
 
     private fun getBasket() = viewModelScope.launch(Dispatchers.IO) {
-        database.BasketDao().getBasket(AppConstants.currentBasketId)
+        database.BasketDao().getBasketFlow(AppConstants.currentBasketId)
             .distinctUntilChanged()
             .collect { basketLines ->
                 val productLines = basketLines.map { basketLine ->

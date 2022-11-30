@@ -10,11 +10,15 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -22,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -29,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.navigation.fragment.findNavController
 import com.airbnb.mvrx.MavericksView
 import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.compose.collectAsState
@@ -91,6 +97,14 @@ class BasketFragment : Fragment(), MavericksView, RecognitionListener, TextToSpe
             this.agentNavigation(event.action.navigationEvent, event.action.entityMapping)
         }
 
+        viewModel.onEach(BasketState::finalizedOrderEvent ,uniqueOnly()) { event ->
+            if(event.id.isNullOrEmpty())
+                return@onEach
+
+            Toast.makeText(requireContext(), getString(R.string.successOrder), Toast.LENGTH_LONG).show()
+            findNavController().popBackStack(R.id.dashboardFragment, false)
+        }
+
         viewModel.onEach(BasketState::addToBasketEvent ,uniqueOnly()) { event ->
             if(event.productId.isNullOrEmpty())
                 return@onEach
@@ -117,7 +131,10 @@ class BasketFragment : Fragment(), MavericksView, RecognitionListener, TextToSpe
                 )
             },
             bottomBar = {
-               FooterView()
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    FooterView()
+                    CompleteOrderButton()
+                }
             },
             content = {
                 Box(
@@ -127,6 +144,7 @@ class BasketFragment : Fragment(), MavericksView, RecognitionListener, TextToSpe
                     contentAlignment = Alignment.TopStart
                 ) {
                     BasketLinesGrid()
+                    Box(modifier = Modifier.height(12.dp))
                     CreateSpeechDialog()
                 }
             }
@@ -147,30 +165,25 @@ class BasketFragment : Fragment(), MavericksView, RecognitionListener, TextToSpe
             endY = 0.0f
         )
 
-        LazyVerticalGrid(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            columns = GridCells.Adaptive(127.dp)
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(productLines.value) { item ->
                 Card(
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier
-                        .padding(top = 16.dp, start = 8.dp, end = 8.dp)
-                        .width(80.dp)
-                        .height(90.dp)
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Box(
                         modifier = Modifier.background(brush = horizontalGradientBrush),
                     ) {
                         Column(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().padding(4.dp),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(text = item.productName, textAlign = TextAlign.Center)
-                            Text(text = getString(R.string.quantity) + item.quantity.toString(), textAlign = TextAlign.Center)
-                            Text(text = getString(R.string.price) + item.price.toString(), textAlign = TextAlign.Center)
+                            Text(text = getString(R.string.quantity) + " " + item.quantity.toString(), textAlign = TextAlign.Center)
+                            Text(text = getString(R.string.price) + " " + item.price.toString(), textAlign = TextAlign.Center)
                         }
                     }
                 }
@@ -185,8 +198,20 @@ class BasketFragment : Fragment(), MavericksView, RecognitionListener, TextToSpe
 
         Row(modifier = Modifier
             .fillMaxWidth()
-            .background(Color.LightGray)) {
-            Text(text = getString(R.string.sum) + footerData.value.totalSum.toString())
+            .background(Color.Transparent)) {
+            Text(text = getString(R.string.sum) + " " + footerData.value.totalSum.toString())
+        }
+    }
+
+    @Composable
+    private fun CompleteOrderButton() {
+        OutlinedButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { viewModel.finalizeOrder() },
+            shape = RoundedCornerShape(12),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black, backgroundColor = Color.Green)
+        ){
+            Text( text = getString(R.string.sendOrder) )
         }
     }
 

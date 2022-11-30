@@ -13,5 +13,8 @@ interface BasketDao {
     suspend fun insertBasketLine(basket: Basket)
 
     @Query("SELECT * FROM Basket WHERE Basket.basketID = :basketID")
-    fun getBasket(basketID: String): Flow<List<Basket>>
+    fun getBasketFlow(basketID: String): Flow<List<Basket>>
+
+    @Query("SELECT * FROM Basket WHERE Basket.basketID = :basketID")
+    suspend fun getBasket(basketID: String): List<Basket>
 }

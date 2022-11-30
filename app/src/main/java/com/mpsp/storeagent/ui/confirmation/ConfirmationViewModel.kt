@@ -22,7 +22,11 @@ data class ConfirmationState(
 
 class ConfirmationViewModel(initialState: ConfirmationState) : MavericksViewModel<ConfirmationState>(initialState) {
     init {
-        //TODO Fetch basket summary
+        getBasket()
+    }
+
+    private fun getBasket() {
+
     }
 
     fun showSpeechDialog() {
