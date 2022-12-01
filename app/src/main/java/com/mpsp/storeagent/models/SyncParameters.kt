@@ -4,7 +4,9 @@ data class SyncParameters(
     val masterCategoryParams: MasterCategoryParameters = MasterCategoryParameters(),
     val masterAndSubcategoryParams: MasterCategorySubcategoryParams = MasterCategorySubcategoryParams(),
     val productParams: ProductParameters = ProductParameters(),
-    val deleteProductParams: DeleteProductParameters = DeleteProductParameters()
+    val deleteProductParams: DeleteProductParameters = DeleteProductParameters(),
+    val increaseQuantityParams: IncreaseQuantityParams = IncreaseQuantityParams(),
+    val decreaseQuantityParams: DecreaseQuantityParams = DecreaseQuantityParams()
 )
 
 data class MasterCategoryParameters(
@@ -22,4 +24,12 @@ data class ProductParameters(
 
 data class DeleteProductParameters(
     val trainingPhrases: ArrayList<String> = arrayListOf()
+)
+
+data class IncreaseQuantityParams(
+    val trainingPhrases: ArrayList<ArrayList<String>> = arrayListOf()
+)
+
+data class DecreaseQuantityParams(
+    val trainingPhrases: ArrayList<ArrayList<String>> = arrayListOf()
 )
