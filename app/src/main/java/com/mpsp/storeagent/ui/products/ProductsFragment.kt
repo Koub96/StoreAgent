@@ -124,22 +124,24 @@ class ProductsFragment : Fragment(), MavericksView, RecognitionListener, TextToS
         val viewModel: ProductsViewModel = mavericksViewModel()
         val products = viewModel.collectAsState(ProductsState::products)
 
-        val horizontalGradientBrush = Brush.verticalGradient(
-            colors = listOf(
-                Color.Blue,
-                Color.White
-            ),
-            startY = 278.0f,
-            endY = 0.0f
-        )
+//        val horizontalGradientBrush = Brush.verticalGradient(
+//            colors = listOf(
+//                Color.Blue,
+//                Color.White
+//            ),
+//            startY = 278.0f,
+//            endY = 0.0f
+//        )
 
         LazyVerticalGrid(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            columns = GridCells.Adaptive(127.dp)
+            columns = GridCells.Adaptive(180.dp),
+            modifier = Modifier.fillMaxHeight()
         ) {
             items(products.value) { item ->
                 Card(
+                    elevation = 12.dp,
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
                         .padding(top = 16.dp, start = 8.dp, end = 8.dp)
@@ -147,7 +149,7 @@ class ProductsFragment : Fragment(), MavericksView, RecognitionListener, TextToS
                         .height(90.dp)
                 ) {
                     Box(
-                        modifier = Modifier.background(brush = horizontalGradientBrush),
+                       // modifier = Modifier.background(brush = horizontalGradientBrush),
                     ) {
                         Column(
                             modifier = Modifier.fillMaxSize(),

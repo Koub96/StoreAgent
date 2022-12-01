@@ -128,22 +128,24 @@ class SubcategoriesFragment : Fragment(), MavericksView, RecognitionListener, Te
         val viewModel: SubcategoriesViewModel = mavericksViewModel()
         val masterCategories = viewModel.collectAsState(SubcategoriesState::subcategories)
 
-        val horizontalGradientBrush = Brush.verticalGradient(
-            colors = listOf(
-                Color.Blue,
-                Color.White
-            ),
-            startY = 278.0f,
-            endY = 0.0f
-        )
+//        val horizontalGradientBrush = Brush.verticalGradient(
+//            colors = listOf(
+//                Color.Blue,
+//                Color.White
+//            ),
+//            startY = 278.0f,
+//            endY = 0.0f
+//        )
 
         LazyVerticalGrid(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            columns = GridCells.Adaptive(127.dp)
+            columns = GridCells.Adaptive(200.dp),
+            modifier = Modifier.fillMaxHeight()
         ) {
             items(masterCategories.value) { item ->
                 Card(
+                    elevation = 12.dp,
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
                         .padding(top = 16.dp, start = 8.dp, end = 8.dp)
@@ -151,7 +153,7 @@ class SubcategoriesFragment : Fragment(), MavericksView, RecognitionListener, Te
                         .height(90.dp)
                 ) {
                     Box(
-                        modifier = Modifier.background(brush = horizontalGradientBrush),
+                       // modifier = Modifier.background(brush = horizontalGradientBrush),
                     ) {
                         Column(
                             modifier = Modifier.fillMaxSize(),

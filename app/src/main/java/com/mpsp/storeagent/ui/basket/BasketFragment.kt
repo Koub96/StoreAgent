@@ -163,25 +163,26 @@ class BasketFragment : Fragment(), MavericksView, RecognitionListener, TextToSpe
         val viewModel: BasketViewModel = mavericksViewModel()
         val productLines = viewModel.collectAsState(BasketState::productLines)
 
-        val horizontalGradientBrush = Brush.verticalGradient(
-            colors = listOf(
-                Color.Blue,
-                Color.White
-            ),
-            startY = 278.0f,
-            endY = 0.0f
-        )
+//        val horizontalGradientBrush = Brush.verticalGradient(
+//            colors = listOf(
+//                Color.Blue,
+//                Color.White
+//            ),
+//            startY = 278.0f,
+//            endY = 0.0f
+//        )
 
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(productLines.value) { item ->
                 Card(
-                    shape = RoundedCornerShape(4.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    elevation = 12.dp,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(12.dp)
                 ) {
                     Box(
-                        modifier = Modifier.background(brush = horizontalGradientBrush),
+                       // modifier = Modifier.background(brush = horizontalGradientBrush),
                     ) {
                         Column(
                             modifier = Modifier.fillMaxSize().padding(4.dp),
