@@ -86,7 +86,7 @@ class SyncFragment : Fragment(), MavericksView {
                         findNavController().navigate(R.id.sync_to_dashboard)
                     }
                 }
-                .setIcon(android.R.drawable.ic_dialog_info)
+                .setIcon(R.drawable.info)
                 .show()
         }
     }
