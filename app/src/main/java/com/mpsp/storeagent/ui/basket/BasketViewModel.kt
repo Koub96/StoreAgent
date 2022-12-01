@@ -5,12 +5,14 @@ import com.airbnb.mvrx.MavericksViewModel
 import com.google.cloud.dialogflow.v2.DetectIntentRequest
 import com.google.cloud.dialogflow.v2.QueryInput
 import com.google.cloud.dialogflow.v2.TextInput
+import com.google.firebase.database.core.view.Change
 import com.mpsp.storeagent.App
 import com.mpsp.storeagent.agent.enums.AgentActionEnum
 import com.mpsp.storeagent.agent.intenthandlers.AgentActionHandler
 import com.mpsp.storeagent.agent.session.AgentSession
 import com.mpsp.storeagent.models.Basket
 import com.mpsp.storeagent.models.BasketFooter
+import com.mpsp.storeagent.models.ChangeQuantityIntention
 import com.mpsp.storeagent.models.Product
 import com.mpsp.storeagent.models.agent.ProductLine
 import com.mpsp.storeagent.singletons.AppConstants
@@ -90,6 +92,7 @@ class BasketViewModel(initialState: BasketState) : MavericksViewModel<BasketStat
                 if(result == null)
                     return@launch
 
+                var errorResponseText = ""
                 val actionHandler = AgentActionHandler()
                 val action = actionHandler.determineAction(
                     result.queryResult.action,
@@ -124,16 +127,42 @@ class BasketViewModel(initialState: BasketState) : MavericksViewModel<BasketStat
                 } else if(action.navigationEvent.name == AgentActionEnum.DeleteProduct.name) {
                     val productId = action.entityMapping[Product::class.simpleName!!]
                     if(productId != null) {
-                        val deleteFromBasketEvent = DeleteFromBasketEvent(productID = productId)
-                        setState {
-                            copy(
-                                deleteFromBasketEvent = deleteFromBasketEvent
-                            )
+                        var basketLine = database.BasketDao().getBasketProduct(productId, AppConstants.currentBasketId)
+                        if(basketLine == null) {
+                            errorResponseText = "The specified product was not present in your basket."
+                        } else {
+                            val deleteFromBasketEvent = DeleteFromBasketEvent(productID = productId)
+                            setState {
+                                copy(
+                                    deleteFromBasketEvent = deleteFromBasketEvent
+                                )
+                            }
+                        }
+                    }
+                } else if (action.navigationEvent.name == AgentActionEnum.IncreaseProductQuantity.name) {
+                    val productId = action.entityMapping[Product::class.simpleName!!]
+                    val quantity = action.entityMapping[actionHandler.quantityKey]
+                    val intention = action.entityMapping[actionHandler.changeQuantityIntentionKey]
+
+                    if(!productId.isNullOrEmpty() && !quantity.isNullOrEmpty() && !intention.isNullOrEmpty()) {
+                        var basketLine = database.BasketDao().getBasketProduct(productId, AppConstants.currentBasketId)
+                        if(basketLine == null) {
+                            errorResponseText = "The specified product was not present in your basket."
+                        } else if(intention == ChangeQuantityIntention.to.name) {
+                            basketLine.quantity = quantity.toFloat().toInt()
+                            database.BasketDao().insertBasketLine(basketLine)
+                        } else if (intention == ChangeQuantityIntention.by.name) {
+                            basketLine.quantity += quantity.toFloat().toInt()
+                            database.BasketDao().insertBasketLine(basketLine)
                         }
                     }
                 }
 
-                val agentResponseEvent = AgentResponseEvent(response = result.queryResult.fulfillmentText)
+                val agentResponseEvent = if(!errorResponseText.isNullOrEmpty())
+                    AgentResponseEvent(response = errorResponseText)
+                else
+                    AgentResponseEvent(response = result.queryResult.fulfillmentText)
+
                 setState {
                     copy(
                         agentResponseEvent = agentResponseEvent

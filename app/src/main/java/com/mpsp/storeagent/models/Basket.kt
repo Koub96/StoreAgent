@@ -10,5 +10,5 @@ data class Basket(
     val id: Int = 0,
     val basketID: String,
     val productID: String,
-    val quantity: Int = 1
+    var quantity: Int = 1
 )

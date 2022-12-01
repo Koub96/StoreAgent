@@ -12,6 +12,7 @@ class AgentActionHandler {
     private val productSubtypeKey: String = "product-subtype"
     private val productKey: String = "product"
     val quantityKey: String = "quantity"
+    val changeQuantityIntentionKey = "change-quantity-intention"
 
     suspend fun determineAction(
         action: String,
@@ -64,6 +65,26 @@ class AgentActionHandler {
                 AgentActionEnum.DeleteProduct,
                 mapOf(
                     Product::class.simpleName!! to productId,
+                )
+            )
+        } else if (action == AgentActionEnum.IncreaseProductQuantity.name) {
+            val productId = handleGetProductId(parameters)
+            val quantity = if(parameters[quantityKey] == null)
+                ""
+            else
+                parameters[quantityKey]!!.numberValue.toString()
+
+            val changeQuantityIntention = if(parameters[changeQuantityIntentionKey] == null)
+                ""
+            else
+                parameters[changeQuantityIntentionKey]!!.stringValue
+
+            return AgentAction(
+                AgentActionEnum.IncreaseProductQuantity,
+                mapOf(
+                    Product::class.simpleName!! to productId,
+                    quantityKey to quantity,
+                    changeQuantityIntentionKey to changeQuantityIntention
                 )
             )
         } else if(action == AgentActionEnum.FinalizeOrder.name) {

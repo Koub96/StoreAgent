@@ -20,4 +20,7 @@ interface BasketDao {
 
     @Query("DELETE FROM Basket WHERE productID = :productID AND basketID = :basketID")
     suspend fun deleteProductFromBasket(productID: String, basketID: String)
+
+    @Query("SELECT * FROM Basket WHERE productID = :productID AND basketID = :basketID")
+    suspend fun getBasketProduct(productID: String, basketID: String): Basket
 }
