@@ -113,6 +113,8 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
                             masterToSubcategories
                         )
 
+                        createDeleteProductTrainingPhrases(parameters.deleteProductParams.trainingPhrases, products)
+
                         setIsLoading(false)
                         triggerSyncFinishedEvent(true)
                     }
@@ -362,6 +364,76 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
 
                     val intentBuilder = intentClient.getIntent(intent.name).toBuilder()
                     intentBuilder.addAllTrainingPhrases(finalMasterSubcategoryTrainingPhrases)
+                    val intent: Intent = intentBuilder.build()
+
+                    val fieldMask = FieldMask.newBuilder().addPaths("training_phrases").build()
+
+                    val request = UpdateIntentRequest.newBuilder()
+                        .setIntent(intent)
+                        .setUpdateMask(fieldMask)
+                        .build()
+
+                    // Make API request to update intent using fieldmask
+                    val response: Intent = intentClient.updateIntent(request)
+                }
+            }
+        } catch (exception: Exception) {
+            setIsLoading(false)
+            triggerSyncFinishedEvent(false)
+            return
+        }
+    }
+
+    private fun createDeleteProductTrainingPhrases(trainingPhrases: ArrayList<String>, products: List<Product>) {
+        val processedTrainingPhrases = arrayListOf<String>()
+        products.forEach { product ->
+            trainingPhrases.forEach { trainingPhrase ->
+                val startingPoint = trainingPhrase.indexOfFirst { it == '@' }
+                val endingPoint = trainingPhrase.indexOfLast { it == '@' }
+
+                val processedTrainingPhrase = trainingPhrase.replaceRange(startingPoint + 1, endingPoint, product.name)
+
+                processedTrainingPhrases.add(processedTrainingPhrase)
+            }
+        }
+
+        val agentTrainingPhrasesDeleteProduct = arrayListOf<Intent.TrainingPhrase>()
+        processedTrainingPhrases.forEach { phrase ->
+            val startingPoint = phrase.indexOfFirst { it == '@' }
+            val endingPoint = phrase.indexOfLast { it == '@' }
+
+            val partBeforeMasterCategory = phrase.substringBefore("@")
+            val product = phrase.subSequence(startingPoint + 1, endingPoint).toString()
+            val partAfterMasterCategory = phrase.substringAfterLast("@")
+
+            val parts = arrayListOf(
+                Intent.TrainingPhrase.Part.newBuilder().setText(partBeforeMasterCategory).build(),
+                Intent.TrainingPhrase.Part.newBuilder().setText(product).setEntityType("@product").setAlias("product").build(),
+                Intent.TrainingPhrase.Part.newBuilder().setText(partAfterMasterCategory).build(),
+            )
+
+            agentTrainingPhrasesDeleteProduct.add(
+                Intent.TrainingPhrase.newBuilder().addAllParts(
+                    parts
+                ).build()
+            )
+        }
+
+        val intentClientSettings: IntentsSettings = IntentsSettings.newBuilder()
+            .setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
+        val intentClient: IntentsClient = IntentsClient.create(intentClientSettings)
+        val parentAgent: AgentName = AgentName.of(AppConstants.projectId)
+
+        try {
+            val listIntentsRequest = ListIntentsRequest.newBuilder().setIntentView(IntentView.INTENT_VIEW_FULL).setParent(parentAgent.toString()).build()
+            val response: ListIntentsResponse = intentClient.listIntentsCallable().call(listIntentsRequest)
+
+            response.intentsList.forEach { intent ->
+                if (intent.displayName.equals("delete-product")) {
+                    agentTrainingPhrasesDeleteProduct.addAll(intent.trainingPhrasesList)
+
+                    val intentBuilder = intentClient.getIntent(intent.name).toBuilder()
+                    intentBuilder.addAllTrainingPhrases(agentTrainingPhrasesDeleteProduct)
                     val intent: Intent = intentBuilder.build()
 
                     val fieldMask = FieldMask.newBuilder().addPaths("training_phrases").build()
