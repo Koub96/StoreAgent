@@ -58,6 +58,14 @@ class AgentActionHandler {
                 AgentActionEnum.GetBasket,
                 emptyMap()
             )
+        } else if (action == AgentActionEnum.DeleteProduct.name) {
+            val productId = handleGetProductId(parameters)
+            return AgentAction(
+                AgentActionEnum.DeleteProduct,
+                mapOf(
+                    Product::class.simpleName!! to productId,
+                )
+            )
         } else if(action == AgentActionEnum.FinalizeOrder.name) {
             return AgentAction(
                 AgentActionEnum.FinalizeOrder,

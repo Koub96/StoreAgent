@@ -111,6 +111,13 @@ class BasketFragment : Fragment(), MavericksView, RecognitionListener, TextToSpe
 
             sharedBasketViewModel.addProductToBasket(event.productId, event.quantity)
         }
+
+        viewModel.onEach(BasketState::deleteFromBasketEvent ,uniqueOnly()) { event ->
+            if(event.productID.isNullOrEmpty())
+                return@onEach
+
+            sharedBasketViewModel.deleteProductFromBasket(event.productID)
+        }
     }
 
     @Composable

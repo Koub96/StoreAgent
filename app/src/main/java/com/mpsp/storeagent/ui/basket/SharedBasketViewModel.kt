@@ -21,8 +21,13 @@ class SharedBasketViewModel(initialState: SharedBasketState) : MavericksViewMode
         else
             Basket(basketID = AppConstants.currentBasketId, productID = productId)
 
-        viewModelScope.launch(Dispatchers.IO) {
-            database.BasketDao().insertBasketLine(newBasketLine)
-        }
+        database.BasketDao().insertBasketLine(newBasketLine)
+    }
+
+    fun deleteProductFromBasket(productId: String) = viewModelScope.launch(Dispatchers.IO) {
+        if(productId.isNullOrEmpty())
+            return@launch
+
+        database.BasketDao().deleteProductFromBasket(productId, AppConstants.currentBasketId)
     }
 }

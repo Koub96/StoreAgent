@@ -6,6 +6,7 @@ enum class AgentActionEnum {
     GetProduct,
     GetProductWithQuantity,
     GetBasket,
+    DeleteProduct,
     FinalizeOrder,
     Unspecified
 }

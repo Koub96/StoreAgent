@@ -14,10 +14,7 @@ import com.mpsp.storeagent.models.BasketFooter
 import com.mpsp.storeagent.models.Product
 import com.mpsp.storeagent.models.agent.ProductLine
 import com.mpsp.storeagent.singletons.AppConstants
-import com.mpsp.storeagent.ui.uievents.ActionNavigationEvent
-import com.mpsp.storeagent.ui.uievents.AddToBasketEvent
-import com.mpsp.storeagent.ui.uievents.AgentResponseEvent
-import com.mpsp.storeagent.ui.uievents.FinalizedOrderEvent
+import com.mpsp.storeagent.ui.uievents.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -30,6 +27,7 @@ data class BasketState(
     val agentResponseEvent: AgentResponseEvent = AgentResponseEvent(),
     val actionNavigationEvent: ActionNavigationEvent = ActionNavigationEvent(),
     val addToBasketEvent: AddToBasketEvent = AddToBasketEvent(),
+    val deleteFromBasketEvent: DeleteFromBasketEvent = DeleteFromBasketEvent(),
     val finalizedOrderEvent: FinalizedOrderEvent = FinalizedOrderEvent(),
     val showSpeechDialog: Boolean = false,
     val productLines: List<ProductLine> = emptyList(),
@@ -120,6 +118,16 @@ class BasketViewModel(initialState: BasketState) : MavericksViewModel<BasketStat
                         setState {
                             copy(
                                 addToBasketEvent = basketEvent
+                            )
+                        }
+                    }
+                } else if(action.navigationEvent.name == AgentActionEnum.DeleteProduct.name) {
+                    val productId = action.entityMapping[Product::class.simpleName!!]
+                    if(productId != null) {
+                        val deleteFromBasketEvent = DeleteFromBasketEvent(productID = productId)
+                        setState {
+                            copy(
+                                deleteFromBasketEvent = deleteFromBasketEvent
                             )
                         }
                     }
