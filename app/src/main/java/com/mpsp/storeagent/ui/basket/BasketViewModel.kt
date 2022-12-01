@@ -62,7 +62,7 @@ class BasketViewModel(initialState: BasketState) : MavericksViewModel<BasketStat
 
         viewModelScope.launch(Dispatchers.IO) {
             AgentSession.terminateSessionClient()
-
+            AppConstants.currentBasketId = UUID.randomUUID().toString()
             val finalizedOrderEvent = FinalizedOrderEvent(id = UUID.randomUUID().toString())
             setState {
                 copy(
