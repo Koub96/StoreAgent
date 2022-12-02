@@ -8,6 +8,7 @@ enum class AgentActionEnum {
     GetBasket,
     DeleteProduct,
     IncreaseProductQuantity,
+    DecreaseProductQuantity,
     FinalizeOrder,
     Unspecified
 }

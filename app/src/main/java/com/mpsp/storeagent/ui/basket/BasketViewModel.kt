@@ -2,6 +2,7 @@ package com.mpsp.storeagent.ui.basket
 
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.MavericksViewModel
+import com.google.cloud.dialogflow.v2.Agent
 import com.google.cloud.dialogflow.v2.DetectIntentRequest
 import com.google.cloud.dialogflow.v2.QueryInput
 import com.google.cloud.dialogflow.v2.TextInput
@@ -154,6 +155,27 @@ class BasketViewModel(initialState: BasketState) : MavericksViewModel<BasketStat
                         } else if (intention == ChangeQuantityIntention.by.name) {
                             basketLine.quantity += quantity.toFloat().toInt()
                             database.BasketDao().insertBasketLine(basketLine)
+                        }
+                    }
+                } else if (action.navigationEvent.name == AgentActionEnum.DecreaseProductQuantity.name) {
+                    val productId = action.entityMapping[Product::class.simpleName!!]
+                    val quantity = action.entityMapping[actionHandler.quantityKey]
+                    val intention = action.entityMapping[actionHandler.changeQuantityIntentionKey]
+
+                    if(!productId.isNullOrEmpty() && !quantity.isNullOrEmpty() && !intention.isNullOrEmpty()) {
+                        var basketLine = database.BasketDao().getBasketProduct(productId, AppConstants.currentBasketId)
+                        if(basketLine == null) {
+                            errorResponseText = "The specified product was not present in your basket."
+                        } else if(intention == ChangeQuantityIntention.to.name) {
+                            basketLine.quantity = quantity.toFloat().toInt()
+                            database.BasketDao().insertBasketLine(basketLine)
+                        } else if (intention == ChangeQuantityIntention.by.name) {
+                            if(basketLine.quantity - quantity.toFloat().toInt() < 0) {
+                                errorResponseText = "Cannot set a negative quantity."
+                            } else {
+                                basketLine.quantity -= quantity.toFloat().toInt()
+                                database.BasketDao().insertBasketLine(basketLine)
+                            }
                         }
                     }
                 }

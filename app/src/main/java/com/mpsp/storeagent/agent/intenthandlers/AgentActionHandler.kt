@@ -87,6 +87,26 @@ class AgentActionHandler {
                     changeQuantityIntentionKey to changeQuantityIntention
                 )
             )
+        } else if(action == AgentActionEnum.DecreaseProductQuantity.name) {
+            val productId = handleGetProductId(parameters)
+            val quantity = if(parameters[quantityKey] == null)
+                ""
+            else
+                parameters[quantityKey]!!.numberValue.toString()
+
+            val changeQuantityIntention = if(parameters[changeQuantityIntentionKey] == null)
+                ""
+            else
+                parameters[changeQuantityIntentionKey]!!.stringValue
+
+            return AgentAction(
+                AgentActionEnum.DecreaseProductQuantity,
+                mapOf(
+                    Product::class.simpleName!! to productId,
+                    quantityKey to quantity,
+                    changeQuantityIntentionKey to changeQuantityIntention
+                )
+            )
         } else if(action == AgentActionEnum.FinalizeOrder.name) {
             return AgentAction(
                 AgentActionEnum.FinalizeOrder,

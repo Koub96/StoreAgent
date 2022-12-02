@@ -546,6 +546,99 @@ class SyncViewModel(initialState: SyncState) : MavericksViewModel<SyncState>(ini
         }
     }
 
+    private fun createDecreaseQuantityParams(decreaseTrainingPhrases: ArrayList<ArrayList<String>>, products: List<Product>) {
+        val finalDecreaseQuantityTrainingPhrases = arrayListOf<Intent.TrainingPhrase>()
+        val phraseParts: ArrayList<Intent.TrainingPhrase.Part> = arrayListOf()
+
+        val quantityIntentions = arrayListOf(ChangeQuantityIntention.by.name, ChangeQuantityIntention.to.name)
+
+        products.forEach { product ->
+            quantityIntentions.forEach { intention ->
+                decreaseTrainingPhrases.forEach { decreaseTrainingPhrase ->
+                    decreaseTrainingPhrase.forEach { partOfPhrase ->
+                        if(partOfPhrase.contains("@product@")) {
+                            phraseParts.add(
+                                Intent.TrainingPhrase.Part.newBuilder()
+                                    .setText(partOfPhrase.replace("@product@", product.name))
+                                    .setEntityType("@product")
+                                    .setAlias("product")
+                                    .build()
+                            )
+                        } else if (partOfPhrase.trim() == "@quantity_intention@") {
+                            phraseParts.add(
+                                Intent.TrainingPhrase.Part.newBuilder()
+                                    .setText(partOfPhrase.replace("@quantity_intention@", intention))
+                                    .setEntityType("@change-quantity-intention")
+                                    .setAlias("change-quantity-intention")
+                                    .build()
+                            )
+                        } else if (partOfPhrase.trim().contains("@quantity@")) {
+                            phraseParts.add(
+                                Intent.TrainingPhrase.Part.newBuilder()
+                                    .setText(partOfPhrase.replace("@quantity@", "2"))
+                                    .setEntityType("@sys.number")
+                                    .setAlias("quantity")
+                                    .build()
+                            )
+                        } else {
+                            phraseParts.add(
+                                Intent.TrainingPhrase.Part.newBuilder().setText(partOfPhrase).build()
+                            )
+                        }
+                    }
+
+                    finalDecreaseQuantityTrainingPhrases.add(
+                        Intent.TrainingPhrase.newBuilder().addAllParts(
+                            phraseParts
+                        ).build()
+                    )
+
+                    phraseParts.clear()
+                }
+            }
+        }
+
+        if(finalDecreaseQuantityTrainingPhrases.isEmpty()) {
+            setIsLoading(false)
+            triggerSyncFinishedEvent(false)
+            return
+        }
+
+        val intentClientSettings: IntentsSettings = IntentsSettings.newBuilder()
+            .setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
+        val intentClient: IntentsClient = IntentsClient.create(intentClientSettings)
+        val parentAgent: AgentName = AgentName.of(AppConstants.projectId)
+
+        try {
+            val listIntentsRequest = ListIntentsRequest.newBuilder().setIntentView(IntentView.INTENT_VIEW_FULL).setParent(parentAgent.toString()).build()
+            val response: ListIntentsResponse = intentClient.listIntentsCallable().call(listIntentsRequest)
+
+            response.intentsList.forEach { intent ->
+                if (intent.displayName.equals("basket-decrease-product-value")) {
+                    finalDecreaseQuantityTrainingPhrases.addAll(intent.trainingPhrasesList)
+
+                    val intentBuilder = intentClient.getIntent(intent.name).toBuilder()
+                    intentBuilder.addAllTrainingPhrases(finalDecreaseQuantityTrainingPhrases)
+                    val intent: Intent = intentBuilder.build()
+
+                    val fieldMask = FieldMask.newBuilder().addPaths("training_phrases").build()
+
+                    val request = UpdateIntentRequest.newBuilder()
+                        .setIntent(intent)
+                        .setUpdateMask(fieldMask)
+                        .build()
+
+                    // Make API request to update intent using fieldmask
+                    val response: Intent = intentClient.updateIntent(request)
+                }
+            }
+        } catch (exception: Exception) {
+            setIsLoading(false)
+            triggerSyncFinishedEvent(false)
+            return
+        }
+    }
+
     private fun createProductEntities(products: List<Product>) {
         val entityClient = EntityTypesClient.create(
             EntityTypesSettings.newBuilder().setCredentialsProvider(FixedCredentialsProvider.create(AppConstants.agentCredentials)).build()
