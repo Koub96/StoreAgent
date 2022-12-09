@@ -1,6 +1,7 @@
 package com.mpsp.storeagent.agent.enums
 
 enum class AgentActionEnum {
+    GoToMainScreen,
     GetProductType,
     GetProductTypeAndSubtype,
     GetProduct,

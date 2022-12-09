@@ -112,6 +112,11 @@ class AgentActionHandler {
                 AgentActionEnum.FinalizeOrder,
                 emptyMap()
             )
+        } else if(action == AgentActionEnum.GoToMainScreen.name) {
+            return AgentAction(
+                AgentActionEnum.GoToMainScreen,
+                emptyMap()
+            )
         }
 
         return AgentAction()

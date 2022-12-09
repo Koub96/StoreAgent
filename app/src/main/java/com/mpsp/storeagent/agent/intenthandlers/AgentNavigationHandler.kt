@@ -67,6 +67,8 @@ fun Fragment.agentNavigation(
         }
     } else if(agentNavigationAction == AgentActionEnum.GetBasket || agentNavigationAction == AgentActionEnum.FinalizeOrder) {
         findNavController().navigate(R.id.basketFragment)
+    } else if(agentNavigationAction == AgentActionEnum.GoToMainScreen) {
+        findNavController().navigate(R.id.dashboardFragment)
     }
 //    else if (agentNavigationAction == AgentActionEnum.FinalizeOrder) {
 //        findNavController().navigate(R.id.confirmationFragment)
